@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const nodemailer = require("nodemailer");
 const { ALGO, SK } = require("../configs/config");
 
 const algorithm = ALGO;
@@ -28,7 +29,35 @@ const decrypt = (hash) => {
     return decrpyted.toString();
 };
 
+const Email = async function(options){
+    try{
+
+        var transport = nodemailer.createTransport({
+            host: "smtp.mailtrap.io",
+            port: 2525,
+            auth: {
+              user: "b6051c56c31e12",
+              pass: "29ede9dcc220a8"
+            }
+          });
+
+          const emailOptions = {
+            from: '"Manoj" <admin@apple.com>', // sender address
+            to: options.to,
+            subject: options.subject,
+            text: options.text,
+            html: options.html
+          }
+
+          await transport.sendMail(emailOptions);
+
+    }catch(err){
+        throw new Error(err);
+    }
+}
+
 module.exports = {
     encrypt,
-    decrypt
+    decrypt,
+    Email
 };

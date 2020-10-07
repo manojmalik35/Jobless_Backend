@@ -23,8 +23,7 @@ const User = db.define('User', {
     },
     role: {
         type: DataTypes.STRING
-    },
-    token : DataTypes.STRING
+    }
 });
 
 module.exports = User;
