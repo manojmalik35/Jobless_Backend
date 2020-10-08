@@ -3,10 +3,9 @@ const db = require("../services/connection");
 const { DataTypes } = Sequelize;
 
 const Job = db.define('Job', {
-    id: {
+    uuid: {
         type: DataTypes.UUID,
-        defaultValue : Sequelize.UUIDV4,
-        primaryKey : true
+        defaultValue : Sequelize.UUIDV4
     },
     title: {
         type: DataTypes.STRING
@@ -19,9 +18,6 @@ const Job = db.define('Job', {
     },
     company : {
         type : DataTypes.STRING
-    },
-    postedBy: {
-        type: DataTypes.UUID
     }
 });
 

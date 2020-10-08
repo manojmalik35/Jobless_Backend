@@ -3,7 +3,7 @@ const db = require("../services/connection");
 const { DataTypes } = Sequelize;
 
 const User = db.define('User', {
-    id: {
+    uuid: {
         type: DataTypes.UUID,
         defaultValue : Sequelize.UUIDV4
     },
@@ -11,8 +11,7 @@ const User = db.define('User', {
         type: DataTypes.STRING
     },
     email: {
-        type: DataTypes.STRING,
-        primaryKey : true
+        type: DataTypes.STRING
     },
     hash_iv : DataTypes.STRING,
     password: {

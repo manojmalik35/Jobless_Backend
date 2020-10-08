@@ -1,8 +1,9 @@
 const jobRouter = require("express").Router();
 
 const {isLoggedIn} = require("../middlewares/authController");
-const { createNewJob, getAllJobs } = require("../controllers/jobController");
+const { createNewJob, getJobs } = require("../controllers/jobController");
 
-jobRouter.route("/").post(isLoggedIn, createNewJob).get(isLoggedIn, getAllJobs);
+jobRouter.route("/").post(isLoggedIn, createNewJob);
+jobRouter.route("/").get(isLoggedIn, getJobs);
 
 module.exports = jobRouter;

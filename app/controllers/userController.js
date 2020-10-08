@@ -1,7 +1,7 @@
-const userModel = require("../models/userModel");
-const tokenModel = require("../models/tokenModel");
+const User = require("../models/userModel");
+const ResetToken = require("../models/tokenModel");
 const jwt = require("jsonwebtoken");
-const { KEY } = require("../configs/config");
+const { KEY, TCOUNT } = require("../configs/config");
 const { encrypt, decrypt, Email } = require("../utilities/helper");
 const crypto = require("crypto");
 const Sequelize = require("sequelize");
@@ -9,14 +9,14 @@ const Op = Sequelize.Op;
 
 module.exports.signup = async function (req, res) {
     try {
-        await userModel.sync();
+        // await User.sync();
         let userObj = req.body;
         const hash = encrypt(userObj.password);
         userObj.hash_iv = hash.iv;
         userObj.password = hash.content;
-        const user = await userModel.create(userObj);
-        const id = user.id;
-        const token = await jwt.sign({ id }, KEY);
+        const user = await User.create(userObj);
+        const uuid = user.uuid;
+        const token = await jwt.sign({ uuid }, KEY);
         res.cookie("jwt", token, { httpOnly: true });
         res.status(201).json({
             success: true,
@@ -32,7 +32,7 @@ module.exports.signup = async function (req, res) {
 module.exports.login = async function (req, res) {
     try {
         const { email, password } = req.body;
-        const user = await userModel.findOne({
+        const user = await User.findOne({
             where: {
                 email
             }
@@ -45,8 +45,8 @@ module.exports.login = async function (req, res) {
         const dbPass = decrypt(hash);
 
         if (dbPass == password) {
-            const id = user.id;
-            const token = await jwt.sign({ id }, KEY);
+            const uuid = user.uuid;
+            const token = await jwt.sign({ uuid }, KEY);
             res.cookie("jwt", token, { httpOnly: true });
             res.status(200).json({
                 success: true,
@@ -67,7 +67,7 @@ module.exports.forgotPassword = async function (req, res) {
     try {
 
         const { email } = req.body;
-        let user = await userModel.findOne({
+        let user = await User.findOne({
             where: { email }
         });
 
@@ -77,25 +77,55 @@ module.exports.forgotPassword = async function (req, res) {
             })
         }
 
-        await tokenModel.sync();
+        // await ResetToken.sync();
         // Expire any tokens that were previously set for this user. That prevents old tokens from being used.
-        await tokenModel.update({
-            used: 1
-        }, {
+        let prevToken = await ResetToken.findOne({
             where: { email }
         });
 
-        var token = crypto.randomBytes(32).toString('hex');
-
-        //token expires after 1 hour
+        let token;
+        // //token expires after 1 hour
         var expireDate = new Date();
         expireDate.setTime(expireDate.getTime() + (60 * 60 * 1000));//minutes to milliseconds
-        await tokenModel.create({
-            email: email,
-            expiration: expireDate,
-            token: token,
-            used: 0
-        });
+        if (prevToken == null) {
+            token = crypto.randomBytes(32).toString('base64');
+            await ResetToken.create({
+                email: email,
+                expiration: expireDate,
+                token: token,
+                used: 0,
+                count: 1
+            });
+        } else {
+            
+            if(prevToken.count >= TCOUNT){
+                return res.json({
+                    message : `You have already requested token ${TCOUNT} times. Limit exceeded`
+                })
+            }
+
+            let updatedAt = prevToken.updatedAt;
+            let currTime = new Date();
+            let diff = currTime - updatedAt;
+            if (diff < 60000) {//within 1 min
+                return res.json({
+                    message: "1 min has not been passed since the previous request."
+                })
+            }
+
+            if (diff < 600000)  // if its within 10 minutes
+                token = prevToken.token;
+            else//if its after 10 minutes
+                token = crypto.randomBytes(32).toString('base64');
+
+            await ResetToken.update({
+                token: token,
+                expiration: expireDate,
+                count: prevToken.count + 1
+            }, {
+                where: { email }
+            })
+        }
 
         // create email
         const message = {
@@ -120,7 +150,7 @@ module.exports.resetPassword = async function (req, res) {
     try {
 
         // This code clears all expired tokens. You should move this to a cronjob if you have a big site. We just include this in here as a demonstration.
-        await tokenModel.destroy({
+        await ResetToken.destroy({
             where: {
                 expiration: { [Op.lt]: Sequelize.fn('CURDATE') },
             }
@@ -128,12 +158,11 @@ module.exports.resetPassword = async function (req, res) {
 
         //find the token
         console.log(req.query.token + " " + req.query.email);
-        let record = await tokenModel.findOne({
+        let record = await ResetToken.findOne({
             where: {
                 email: req.query.email,
                 expiration: { [Op.gt]: Sequelize.fn('CURDATE') },
-                token: req.query.token,
-                used: 0
+                token: req.query.token
             }
         });
 
@@ -153,16 +182,14 @@ module.exports.resetPassword = async function (req, res) {
         //validate Password
 
         //update token
-        await tokenModel.update({
-            used: 1
-        }, {
+        await ResetToken.destroy({
             where: {
                 email: record.email
             }
         });
 
         const hash = encrypt(req.body.password);
-        await userModel.update({
+        await User.update({
             hash_iv: hash.iv,
             password: hash.content
         }, {
@@ -190,5 +217,85 @@ module.exports.logout = async function (req, res) {
     } catch (err) {
         console.log(err);
         res.json({ err })
+    }
+}
+
+module.exports.getAllCandidates = async function(req, res){
+    try{
+
+        let candidates = await User.findAll({
+            where : {
+                role : "Candidate"
+            }
+        });
+
+        res.status(200).json({
+            success : true,
+            users : candidates
+        })
+
+    }catch(err){
+        console.log(err);
+        res.json({err});
+    }
+}
+
+
+module.exports.getAllRecruiters = async function(req, res){
+    try{
+
+        let recruiters = await User.findAll({
+            where : {
+                role : "Recruiter"
+            }
+        });
+
+        res.status(200).json({
+            success : true,
+            users : recruiters
+        })
+
+    }catch(err){
+        console.log(err);
+        res.json({err});
+    }
+}
+
+module.exports.updateUser = async function(req, res){
+    try{
+
+        let user_id = req.params.user_id;
+        let updateObj = req.body;
+        await User.update(updateObj, {
+            where : {
+                id : user_id
+            }
+        });
+
+        res.status(204).json({
+            success : true
+        })
+    }catch(err){
+        console.log(err);
+        res.json({err})
+    }
+}
+
+module.exports.deleteUser = async function(req, res){
+    try{
+
+        let user_id = req.params.user_id;
+        await User.destroy({
+            where : {
+                id : user_id
+            }
+        });
+
+        res.status(204).json({
+            success : true
+        })
+    }catch(err){
+        console.log(err);
+        res.json({err})
     }
 }

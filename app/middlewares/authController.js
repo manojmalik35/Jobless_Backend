@@ -20,7 +20,7 @@ module.exports.isLoggedIn = async function(req, res, next){
             const token = headers.auth || req.cookies.jwt;
             let ans = await jwt.verify(token, KEY);
             if(ans){
-                const user = await userModel.findOne({where : {id : ans.id}});
+                const user = await userModel.findOne({where : {uuid : ans.uuid}});
                 req.user = user;
                 next();
             }else{
