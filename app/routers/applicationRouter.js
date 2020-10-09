@@ -5,8 +5,8 @@ const {isLoggedIn, checkInput} = require("../middlewares/authController");
 const {createApplication, viewAppliedByCandidates, viewAppliedJobs} = require("../controllers/applicationController");
 
 applicationRouter.route("/new").post(checkInput, isLoggedIn, createApplication);
-applicationRouter.route("/:job_id").get(isLoggedIn, viewAppliedByCandidates);
-applicationRouter.route("/:candidate_id").get(isLoggedIn, viewAppliedJobs);
+applicationRouter.route("/job/:job_id").get(isLoggedIn, viewAppliedByCandidates);
+applicationRouter.route("/candidate/:candidate_id").get(isLoggedIn, viewAppliedJobs);
 
 module.exports = applicationRouter;
 

@@ -5,11 +5,13 @@ const { KEY, TCOUNT } = require("../configs/config");
 const { encrypt, decrypt, Email } = require("../utilities/helper");
 const crypto = require("crypto");
 const Sequelize = require("sequelize");
+const userRouter = require("../routers/userRouter");
+const Job = require("../models/jobModel");
 const Op = Sequelize.Op;
 
 module.exports.signup = async function (req, res) {
     try {
-        // await User.sync();
+    
         let userObj = req.body;
         const hash = encrypt(userObj.password);
         userObj.hash_iv = hash.iv;
@@ -77,7 +79,6 @@ module.exports.forgotPassword = async function (req, res) {
             })
         }
 
-        // await ResetToken.sync();
         // Expire any tokens that were previously set for this user. That prevents old tokens from being used.
         let prevToken = await ResetToken.findOne({
             where: { email }
@@ -97,10 +98,10 @@ module.exports.forgotPassword = async function (req, res) {
                 count: 1
             });
         } else {
-            
-            if(prevToken.count >= TCOUNT){
+
+            if (prevToken.count >= TCOUNT) {
                 return res.json({
-                    message : `You have already requested token ${TCOUNT} times. Limit exceeded`
+                    message: `You have already requested token ${TCOUNT} times. Limit exceeded`
                 })
             }
 
@@ -157,7 +158,6 @@ module.exports.resetPassword = async function (req, res) {
         });
 
         //find the token
-        console.log(req.query.token + " " + req.query.email);
         let record = await ResetToken.findOne({
             where: {
                 email: req.query.email,
@@ -220,82 +220,82 @@ module.exports.logout = async function (req, res) {
     }
 }
 
-module.exports.getAllCandidates = async function(req, res){
-    try{
+module.exports.getAllUsers = async function (req, res) {
+    try {
 
-        let candidates = await User.findAll({
-            where : {
-                role : "Candidate"
-            }
-        });
+        let user = req.user;
+        if (user.role != "Admin") {
+            return res.status(401).json({
+                message: "You are not authorized."
+            })
+        }
+
+        let role = req.query.role;
+        let users;
+        if (role == "Candidate") {
+            let candidates = await User.findAll({
+                where: {
+                    role: "Candidate"
+                }
+            });
+            users = candidates;
+        }else{
+            let recruiters = await User.findAll({
+                where: {
+                    role: "Recruiter"
+                }
+            });
+            users = recruiters;
+        }
 
         res.status(200).json({
-            success : true,
-            users : candidates
+            success: true,
+            users: users
         })
 
-    }catch(err){
+    } catch (err) {
         console.log(err);
-        res.json({err});
+        res.json({ err });
     }
 }
 
 
-module.exports.getAllRecruiters = async function(req, res){
-    try{
 
-        let recruiters = await User.findAll({
-            where : {
-                role : "Recruiter"
-            }
-        });
-
-        res.status(200).json({
-            success : true,
-            users : recruiters
-        })
-
-    }catch(err){
-        console.log(err);
-        res.json({err});
-    }
-}
-
-module.exports.updateUser = async function(req, res){
-    try{
+module.exports.updateUser = async function (req, res) {
+    try {
 
         let user_id = req.params.user_id;
         let updateObj = req.body;
         await User.update(updateObj, {
-            where : {
-                id : user_id
+            where: {
+                id: user_id
             }
         });
 
         res.status(204).json({
-            success : true
+            success: true
         })
-    }catch(err){
+    } catch (err) {
         console.log(err);
-        res.json({err})
+        res.json({ err })
     }
 }
 
-module.exports.deleteUser = async function(req, res){
-    try{
+module.exports.deleteUser = async function (req, res) {
+    try {
 
         let user_id = req.params.user_id;
         await User.destroy({
-            where : {
-                id : user_id
+            where: {
+                id: user_id
             }
         });
 
-        res.status(204).json({
-            success : true
+        res.status(200).json({
+            success: true
         })
-    }catch(err){
+    } catch (err) {
         console.log(err);
-        res.json({err})
+        res.json({ err })
     }
 }
