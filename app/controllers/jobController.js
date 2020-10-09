@@ -1,6 +1,6 @@
 const Job = require("../models/jobModel");
 require("../models/associations");
-const sequelize = require("../services/connection")
+const sequelize = require("../configs/connection")
 const { QueryTypes } = require("sequelize");
 
 module.exports.createNewJob = async function (req, res) {

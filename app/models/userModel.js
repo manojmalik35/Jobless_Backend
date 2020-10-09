@@ -1,5 +1,5 @@
 const Sequelize = require("sequelize");
-const db = require("../services/connection");
+const db = require("../configs/connection");
 const { DataTypes } = Sequelize;
 
 const User = db.define('User', {
@@ -21,7 +21,7 @@ const User = db.define('User', {
         type : DataTypes.BIGINT(10)
     },
     role: {
-        type: DataTypes.STRING
+        type: DataTypes.INTEGER
     }
 });
 

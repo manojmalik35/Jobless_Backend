@@ -1,7 +1,7 @@
 const express = require("express");
 const applicationRouter = express.Router();
 
-const {isLoggedIn, checkInput} = require("../middlewares/authController");
+const {isLoggedIn, checkInput} = require("../middlewares/authMiddleware");
 const {createApplication, viewAppliedByCandidates, viewAppliedJobs} = require("../controllers/applicationController");
 
 applicationRouter.route("/new").post(checkInput, isLoggedIn, createApplication);

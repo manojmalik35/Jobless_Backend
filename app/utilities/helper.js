@@ -29,35 +29,42 @@ const decrypt = (hash) => {
     return decrpyted.toString();
 };
 
-const Email = async function(options){
-    try{
+const Email = async function (options) {
+    try {
 
         var transport = nodemailer.createTransport({
             host: "smtp.mailtrap.io",
             port: 2525,
             auth: {
-              user: "b6051c56c31e12",
-              pass: "29ede9dcc220a8"
+                user: "b6051c56c31e12",
+                pass: "29ede9dcc220a8"
             }
-          });
+        });
 
-          const emailOptions = {
+        const emailOptions = {
             from: '"Manoj" <admin@apple.com>', // sender address
             to: options.to,
             subject: options.subject,
             text: options.text,
             html: options.html
-          }
+        }
 
-          await transport.sendMail(emailOptions);
+        await transport.sendMail(emailOptions);
 
-    }catch(err){
+    } catch (err) {
         throw new Error(err);
+    }
+}
+
+const errMessage = function (status, code, field, message) {
+    return {
+        status, code, field, message
     }
 }
 
 module.exports = {
     encrypt,
     decrypt,
-    Email
+    Email,
+    errMessage
 };

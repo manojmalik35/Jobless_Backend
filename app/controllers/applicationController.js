@@ -2,7 +2,7 @@ const candidateJob = require("../models/candidateJobModel");
 const Job = require("../models/jobModel")
 const User = require("../models/userModel")
 const { Email } = require("../utilities/helper");
-const sequelize = require("../services/connection")
+const sequelize = require("../configs/connection")
 const { QueryTypes } = require("sequelize");
 
 module.exports.createApplication = async function (req, res) {

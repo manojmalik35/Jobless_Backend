@@ -1,4 +1,4 @@
-const db = require("../services/connection");
+const db = require("../configs/connection");
 
 const candidateJob = db.define('candidateJob', {});
 

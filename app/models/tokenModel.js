@@ -1,5 +1,5 @@
 const Sequelize = require("sequelize");
-const db = require("../services/connection");
+const db = require("../configs/connection");
 const { DataTypes } = Sequelize;
 
 const ResetToken = db.define('ResetToken', {

@@ -1,7 +1,8 @@
 const userRouter = require("express").Router();
 
-const {signup, login, forgotPassword, resetPassword, logout, getAllUsers, deleteUser} = require("../controllers/userController");
-const {isLoggedIn} = require("../middlewares/authController");
+const {getAllUsers, deleteUser} = require("../controllers/userController");
+const {signup, login, forgotPassword, resetPassword, logout} = require("../controllers/authController");
+const {isLoggedIn} = require("../middlewares/authMiddleware");
 
 userRouter.route("/signup").post(signup);
 userRouter.route("/login").post(login);
