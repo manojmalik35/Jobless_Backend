@@ -11,7 +11,7 @@ const Op = Sequelize.Op;
 
 module.exports.signup = async function (req, res) {
     try {
-    
+
         let userObj = req.body;
         const hash = encrypt(userObj.password);
         userObj.hash_iv = hash.iv;
@@ -209,11 +209,16 @@ module.exports.resetPassword = async function (req, res) {
 
 module.exports.logout = async function (req, res) {
     try {
-        res.cookie("jwt", "ajfdlafjlaskjfla", {
-            httpOnly: true,
-            expires: new Date(Date.now())
-        });
-        res.redirect("/");
+        if (req.user != undefined) {
+            res.cookie("jwt", "ajfdlafjlaskjfla", {
+                httpOnly: true,
+                expires: new Date(Date.now())
+            });
+            // res.redirect("/");
+            res.status(200).json({
+                message : "You are logged out."
+            })
+        }
     } catch (err) {
         console.log(err);
         res.json({ err })
@@ -239,7 +244,7 @@ module.exports.getAllUsers = async function (req, res) {
                 }
             });
             users = candidates;
-        }else{
+        } else {
             let recruiters = await User.findAll({
                 where: {
                     role: "Recruiter"
