@@ -1,90 +1,78 @@
-const User = require("../models/userModel");
-const ResetToken = require("../models/tokenModel");
-const jwt = require("jsonwebtoken");
-const { KEY, TCOUNT } = require("../configs/config");
-const { encrypt, decrypt, Email } = require("../utilities/helper");
-const crypto = require("crypto");
-const Sequelize = require("sequelize");
-const userRouter = require("../routers/userRouter");
-const Job = require("../models/jobModel");
-const Op = Sequelize.Op;
+const UserService = require("../services/userService");
+const isDuplicate = require("../validators/duplicateFinder");
+const validate = require("../validators/validator");
 
+const userService = new UserService();
 module.exports.getAllUsers = async function (req, res) {
-    try {
+    // try {
 
-        let user = req.user;
-        if (user.role != "Admin") {
-            return res.status(401).json({
-                message: "You are not authorized."
-            })
+        let inputs = req.query;
+        let isValid = validate(inputs);
+        if(isValid.status == "error"){
+            return res.status(400).json(isValid);
         }
 
-        let role = req.query.role;
-        let users;
-        if (role == "Candidate") {
-            let candidates = await User.findAll({
-                where: {
-                    role: "Candidate"
-                }
-            });
-            users = candidates;
-        } else {
-            let recruiters = await User.findAll({
-                where: {
-                    role: "Recruiter"
-                }
-            });
-            users = recruiters;
+        let users = await userService.getUser(inputs);
+        for(let i = 0; i < users.length; i++){
+            users[i].dataValues.id = undefined;
         }
 
         res.status(200).json({
-            success: true,
-            users: users
+            status : "ok",
+            data : users
         })
 
-    } catch (err) {
-        console.log(err);
-        res.json({ err });
-    }
+    // } catch (err) {
+    //     console.log(err);
+    //     res.json({ err });
+    // }
 }
 
 
 
 module.exports.updateUser = async function (req, res) {
-    try {
+    // try {
 
         let user_id = req.params.user_id;
-        let updateObj = req.body;
-        await User.update(updateObj, {
-            where: {
-                id: user_id
-            }
-        });
+        let inputs = req.body;
+        inputs.id = user_id;
+        let isValid = validate(inputs);
+        if(isValid.status == "error"){
+            return res.status(400).json(isValid);
+        }
+        
+        inputs.user_id = inputs.id;
+        let isPresent = await isDuplicate(inputs);
+        if(!isPresent)
+            return res.status(400).json(errMessage("error", 400, "id", "User not found"))
 
-        res.status(204).json({
-            success: true
-        })
-    } catch (err) {
-        console.log(err);
-        res.json({ err })
-    }
+        let result = await userService.updateUser(updateObj);
+        res.status(200).json(result);
+    // } catch (err) {
+    //     console.log(err);
+    //     res.json({ err })
+    // }
 }
 
 module.exports.deleteUser = async function (req, res) {
-    try {
+    // try {
 
         let user_id = req.params.user_id;
-        await User.destroy({
-            where: {
-                id: user_id
-            }
-        });
+        let inputs = { id : user_id}
+        let isValid = validate(inputs);
+        if(isValid.status == "error"){
+            return res.status(400).json(isValid);
+        }
 
-        res.status(200).json({
-            success: true
-        })
-    } catch (err) {
-        console.log(err);
-        res.json({ err })
-    }
+        inputs = {user_id};
+        let isPresent = await isDuplicate(inputs);
+        if(!isPresent)
+            return res.status(400).json(errMessage("error", 400, "email", "User not found"))
+
+        let result = await userService.deleteUser(inputs);
+        res.status(200).json(result);
+    // } catch (err) {
+    //     console.log(err);
+    //     res.json({ err })
+    // }
 }

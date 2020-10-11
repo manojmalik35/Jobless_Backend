@@ -1,15 +1,13 @@
-const User = require("../models/userModel");
-const ResetToken = require("../models/tokenModel");
 const jwt = require("jsonwebtoken");
-const { KEY, TCOUNT } = require("../configs/config");
-const { encrypt, decrypt, Email } = require("../utilities/helper");
-const crypto = require("crypto");
-const Sequelize = require("sequelize");
-const Op = Sequelize.Op;
+const { KEY } = require("../configs/config");
 const validate = require("../validators/validator");
+const isDuplicate = require("../validators/duplicateFinder");
+const {errMessage} = require("../utilities/helper");
 const UserService = require("../services/userService");
+const AuthService = require("../services/authService");
 
 const userService = new UserService();
+const authService = new AuthService();
 
 module.exports.signup = async function (req, res) {
     // try {
@@ -20,13 +18,17 @@ module.exports.signup = async function (req, res) {
             return res.status(400).json(isValid);
         }
 
+        let isPresent = await isDuplicate(inputs);
+        if(isPresent)
+            return res.status(400).json(errMessage("error", 121, "email", "Email already exists."));
+
         let user = await userService.create(inputs);
         const uuid = user.uuid;
         const token = jwt.sign({ uuid }, KEY);
-        user.authToken = token;
-        user.id = undefined;
+        user.dataValues.authToken = token;
+        user.dataValues.id = undefined;
         res.status(201).json({
-            success: true,
+            status : "ok",
             data: user
         })
     // } catch (err) {
@@ -35,195 +37,80 @@ module.exports.signup = async function (req, res) {
 }
 
 module.exports.login = async function (req, res) {
-    try {
-        const { email, password } = req.body;
-        const user = await User.findOne({
-            where: {
-                email
-            }
-        });
-
-        let hash = {
-            iv: user.hash_iv,
-            content: user.password
+    // try {
+        const inputs = req.body;
+        let isValid = validate(inputs);
+        if(isValid.status == "error"){
+            return res.status(400).json(isValid);
         }
-        const dbPass = decrypt(hash);
 
-        if (dbPass == password) {
+        let isPresent = await isDuplicate(inputs);
+        if(!isPresent)
+            return res.status(401).json(errMessage("error", 401, "email", "User not found"))
+
+        let user = await authService.login(inputs);
+        if (user) {
             const uuid = user.uuid;
             const token = await jwt.sign({ uuid }, KEY);
-            res.cookie("jwt", token, { httpOnly: true });
+            user.dataValues.authToken = token;
+            user.dataValues.id = undefined;
             res.status(200).json({
+                status : "ok",
                 success: true,
                 data: user
             })
         } else {
-            res.status(401).json({
-                message: "Something went wrong!",
-                description: "Wrong password."
-            })
+            res.status(401).json(errMessage("error", 401, "password", "Wrong password."));
         }
-    } catch (err) {
-        res.json({ err })
-    }
+    // } catch (err) {
+    //     res.json({ err })
+    // }
 }
 
 module.exports.forgotPassword = async function (req, res) {
-    try {
+    // try {
 
-        const { email } = req.body;
-        let user = await User.findOne({
-            where: { email }
-        });
-
-        if (user == null) {
-            return res.status(200).json({
-                status: "ok"
-            })
+        const inputs = req.body;
+        let isValid = validate(inputs);
+        if(isValid.status == "error"){
+            return res.status(400).json(isValid);
         }
 
-        // Expire any tokens that were previously set for this user. That prevents old tokens from being used.
-        let prevToken = await ResetToken.findOne({
-            where: { email }
-        });
+        let isPresent = await isDuplicate(inputs);
+        if(!isPresent)
+            return res.status(401).json(errMessage("error", 401, "email", "User not found"))
 
-        let token;
-        // //token expires after 1 hour
-        var expireDate = new Date();
-        expireDate.setTime(expireDate.getTime() + (60 * 60 * 1000));//minutes to milliseconds
-        if (prevToken == null) {
-            token = crypto.randomBytes(32).toString('base64');
-            await ResetToken.create({
-                email: email,
-                expiration: expireDate,
-                token: token,
-                used: 0,
-                count: 1
-            });
-        } else {
+        let result = await authService.forgotPassword(inputs);
+        if(result.status == "error")
+            res.status(400).json(result);
+        else
+            res.status(200).json(result);
 
-            if (prevToken.count >= TCOUNT) {
-                return res.json({
-                    message: `You have already requested token ${TCOUNT} times. Limit exceeded`
-                })
-            }
-
-            let updatedAt = prevToken.updatedAt;
-            let currTime = new Date();
-            let diff = currTime - updatedAt;
-            if (diff < 60000) {//within 1 min
-                return res.json({
-                    message: "1 min has not been passed since the previous request."
-                })
-            }
-
-            if (diff < 600000)  // if its within 10 minutes
-                token = prevToken.token;
-            else//if its after 10 minutes
-                token = crypto.randomBytes(32).toString('base64');
-
-            await ResetToken.update({
-                token: token,
-                expiration: expireDate,
-                count: prevToken.count + 1
-            }, {
-                where: { email }
-            })
-        }
-
-        // create email
-        const message = {
-            to: email,
-            subject: "Reset Password",
-            text: token,
-            html: `<b> To reset your password, click the link below </b> https://localhost:3000/api/v1/users/reset-password?token=${encodeURIComponent(token)}&email=${email}`
-        };
-
-        Email(message);
-        res.status(200).json({
-            data: "Email has been sent."
-        })
-
-    } catch (err) {
-        console.log(err);
-        res.json({ err });
-    }
+    // } catch (err) {
+    //     console.log(err);
+    //     res.json({ err });
+    // }
 }
 
 module.exports.resetPassword = async function (req, res) {
-    try {
+    // try {
 
-        // This code clears all expired tokens. You should move this to a cronjob if you have a big site. We just include this in here as a demonstration.
-        await ResetToken.destroy({
-            where: {
-                expiration: { [Op.lt]: Sequelize.fn('CURDATE') },
-            }
-        });
-
-        //find the token
-        let record = await ResetToken.findOne({
-            where: {
-                email: req.query.email,
-                expiration: { [Op.gt]: Sequelize.fn('CURDATE') },
-                token: req.query.token
-            }
-        });
-
-        if (record == null) {
-            return res.json({
-                message: 'Token has expired. Please try password reset again.'
-            })
+        const inputs = req.body;
+        inputs.resetToken = inputs.token;
+        inputs.token = undefined;
+        let isValid = validate(inputs);
+        if(isValid.status == "error"){
+            return res.status(400).json(isValid);
         }
 
-        if (req.body.password !== req.body.confirmPassword) {
-            return res.status(400).json({
-                status: 'error',
-                message: 'Passwords do not match. Please try again.'
-            });
-        }
-
-        //validate Password
-
-        //update token
-        await ResetToken.destroy({
-            where: {
-                email: record.email
-            }
-        });
-
-        const hash = encrypt(req.body.password);
-        await User.update({
-            hash_iv: hash.iv,
-            password: hash.content
-        }, {
-            where: {
-                email: record.email
-            }
-        });
-
-        return res.status(200).json({
-            message: "Password has been reset. Please login again."
-        })
-    } catch (err) {
-        console.log(err);
-        res.json({ err });
-    }
-}
-
-module.exports.logout = async function (req, res) {
-    try {
-        if (req.user != undefined) {
-            res.cookie("jwt", "ajfdlafjlaskjfla", {
-                httpOnly: true,
-                expires: new Date(Date.now())
-            });
-            // res.redirect("/");
-            res.status(200).json({
-                message : "You are logged out."
-            })
-        }
-    } catch (err) {
-        console.log(err);
-        res.json({ err })
-    }
+        let result = await authService.resetPassword(inputs);
+        if(result.status == "error")
+            res.status(400).json(result);
+        else
+            res.status(200).json(result);
+        
+    // } catch (err) {
+    //     console.log(err);
+    //     res.json({ err });
+    // }
 }

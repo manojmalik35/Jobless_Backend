@@ -16,7 +16,7 @@ function validate(inputs) {
     }
 
     if(inputs.role){
-        if(!validator.isIn(inputs.role, [0, 1, 2])){
+        if(!validator.isIn(inputs.role, ["1", "2"])){
             return errMessage("error", 103, "role", "Your role can either be recruiter or a candidate.");
         }
     }
@@ -27,6 +27,29 @@ function validate(inputs) {
         }
     }
 
+    if(inputs.id){
+        if(!validator.isNumeric(inputs.id)){
+            return errMessage("error", 105, "id", "Invalid user id");
+        }
+    }
+
+    if(inputs.authToken){
+        if(!validator.isJWT(inputs.authToken)){
+            return errMessage("error", 106, "authToken", "Your authToken is not valid.");
+        }
+    }
+    
+    if(inputs.resetToken){
+        if(!validator.isBase64(inputs.resetToken)){
+            return errMessage("error", 107, "resetToken", "Your resetToken is not valid.");
+        }
+    }
+
+    if(inputs.package){
+        if(!validator.isNumeric(inputs.package)){
+            return errMessage("error", 108, "package", "The package can contain numbers only.")
+        }
+    }
 
 
 

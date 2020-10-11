@@ -1,118 +1,85 @@
-const candidateJob = require("../models/candidateJobModel");
-const Job = require("../models/jobModel")
-const User = require("../models/userModel")
-const { Email } = require("../utilities/helper");
-const sequelize = require("../configs/connection")
-const { QueryTypes } = require("sequelize");
+const isDuplicate = require("../validators/duplicateFinder");
+const validate = require("../validators/validator");
+const ApplicationService = require("../services/applicationService");
+
+const applicationService = new ApplicationService();
 
 module.exports.createApplication = async function (req, res) {
-    try {
+    // try {
 
         let candidate = req.user;
-        let candidate_id = candidate["id"];
-        let { job_id } = req.body;
-        if (candidate.role == "Recruiter") {
-            return res.status(403).json({
-                success: false,
-                message: "You cannot apply. You are a recruiter"
-            })
+        let inputs = req.body;
+        inputs.id = inputs.job_id;
+        let isValid = validate(inputs);
+        if (isValid.status == "error") {
+            return res.status(400).json(isValid);
         }
 
-        let application = await candidateJob.create({
-            UserId: candidate_id,
-            JobId: job_id
-        });
-        let job = await Job.findOne({
-            where: { id: job_id }
-        });
-        let recruiter = await User.findOne({
-            where: { id: job.postedById }
-        });
+        let isPresent = await isDuplicate(inputs);
+        if (!isPresent)
+            return res.status(400).json(errMessage("error", 400, "id", "Job not found"))
 
-        let message = {
-            to: candidate.email,
-            subject: "Successfully applied for the job",
-            html: `<b>Congratulations! ${candidate.name}, You have successfully applied for the job ${job.title} posted by the company ${job.company}</b>`
-        };
-
-        Email(message);
-        message = {
-            to: recruiter.email,
-            subject: "Received application for a job",
-            html: `<b>Hello! ${recruiter.name}, We are pleased to inform you that a candidate named ${candidate.name} has successfully applied for the job ${job.title} posted by you.</b>`
-        };
-        Email(message);
+        inputs.candidate = candidate;
+        let application = await applicationService.create(inputs);
+        application.dataValues.id = undefined;
 
         res.status(201).json({
-            success: true,
+            status: "ok",
             data: application
         });
 
-    } catch (err) {
-        console.log(err);
-        res.json({ err })
-    }
+    // } catch (err) {
+    //     console.log(err);
+    //     res.json({ err })
+    // }
 }
 
 module.exports.viewAppliedByCandidates = async function (req, res) {
     let user = req.user;
-    if (user.role == "Candidate") {
-        return res.status(401).json({
-            success: false,
-            message: "You are not authorized"
-        })
-    }
-
     let job_id = req.params.job_id;
-    if (user.role == "Recruiter") {
-        let job = await Job.findOne({ where: { id: job_id } });
-        if (user.id != job.postedById) {
-            return res.status(403).json({
-                success: false,
-                message: "You did not post this job."
-            })
-        }
+    let inputs = {id : job_id};
+    let isValid = validate(inputs);
+    if (isValid.status == "error") {
+        return res.status(400).json(isValid);
     }
 
-    let applyingUsers = await sequelize.query(`select u.* from users u, candidatejobs c where u.id=c.UserId  && c.JobId=${job_id}`, {
-        plain: false,
-        // logging : console.log,
-        model: User,
-        mapToModel: true,
-        type: QueryTypes.SELECT
-    });
+    inputs.job_id = job_id;
+    let isPresent = await isDuplicate(inputs);
+    if (!isPresent)
+        return res.status(400).json(errMessage("error", 400, "id", "Job not found"));
 
-    res.json({
-        success: true,
+    let applyingUsers = await applicationService.getAppliedByCandidates(inputs);
+    for(let i = 0; i < applyingUsers.length; i++){
+        applyingUsers[i].id = undefined;
+        applyingUsers[i].Jobs = undefined;
+    }
+
+    res.status(200).json({
+        status : "ok",
         users: applyingUsers
     })
 }
 
 module.exports.viewAppliedJobs = async function (req, res) {
-    let user = req.user;
-    if (user.role == "Recruiter") {
-        return res.status(401).json({
-            success: false,
-            message: "You are not authorized"
-        })
+    let candidate_id = req.params.candidate_id;
+    let inputs = { id: candidate_id };
+    let isValid = validate(inputs);
+    if (isValid.status == "error") {
+        return res.status(400).json(isValid);
     }
 
-    let candidate_id;
-    if (user.role == "Candidate")
-        candidate_id = user.id;
-    else
-        candidate_id = req.params.candidate_id;
+    inputs.user_id = candidate_id;
+    let isPresent = await isDuplicate(inputs);
+    if (!isPresent)
+        return res.status(400).json(errMessage("error", 400, "id", "Candidate not found"));
 
-    let appliedJobs = await sequelize.query(`select j.* from jobs j, candidatejobs c where j.id=c.JobId && c.UserId=${candidate_id};`, {
-        plain: false,
-        // logging : console.log,
-        model: Job,
-        mapToModel: true,
-        type: QueryTypes.SELECT
-    });
-
-    res.json({
-        success: true,
+    let appliedJobs = await applicationService.getAppliedJobs(inputs);
+    for(let i = 0; i < appliedJobs.length; i++){
+        appliedJobs[i].id = undefined;
+        appliedJobs[i].Users = undefined;
+    }
+    res.status(200).json({
+        status : "ok",
         jobs: appliedJobs
     })
 }

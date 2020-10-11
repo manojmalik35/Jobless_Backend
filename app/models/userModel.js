@@ -21,7 +21,7 @@ const User = db.define('User', {
         type : DataTypes.BIGINT(10)
     },
     role: {
-        type: DataTypes.INTEGER
+        type: DataTypes.INTEGER// 0 = admin, 1=recruiter , 2=candidate
     }
 });
 
