@@ -1,5 +1,5 @@
 const JobService = require("../services/jobService");
-const { succMessage } = require("../utilities/helper");
+const { succMessage, errMessage } = require("../utilities/helper");
 
 const jobService = new JobService();
 
@@ -57,6 +57,7 @@ module.exports.getPostedJobs = async function (req, res) {
     
     let inputs = req.params;
     let jobs = await jobService.getPostedJobs(inputs);
+    if(!jobs) return errMessage(true, 200, null, "No jobs posted.");
     jobs = jobs.map(job => {
         return {
             uuid: job.dataValues.uuid,
