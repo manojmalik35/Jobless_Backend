@@ -15,7 +15,8 @@ const limiter = rateLimit({
     max: 60,
 });
 
-
+app.use(helmet());
+app.use(limiter);
 
 app.get("/*", function (req, res, next) {
     res.header("X-XSS-Protection", 1);
