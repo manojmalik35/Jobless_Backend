@@ -3,18 +3,18 @@ const Job = require("../models/jobModel");
 const User = require("../models/userModel");
 const { errMessage, succMessage, Email } = require("../utilities/helper");
 const applicationValidator = require("../validators/applicationValidator");
-const jobValidator = require("../validators/jobValidator");
 const userValidator = require("../validators/userValidator");
 
 class ApplicationService{
 
     async create(inputs){
-        let job = await jobValidator.isJobPresent(inputs);
-        if(!job) return errMessage(false, 400, "Job does not exist.");
-        inputs.job = job;
-        let application = await applicationValidator.isApplicationPresent(inputs);
+        
+        let obj = await applicationValidator.isApplicationPresent(inputs);
+        if(!obj.status) return obj;
+        let application = obj.data;
         if(application) return errMessage(false, 400, "You have already applied for this job.");
         let {candidate} = inputs;
+        let job = obj.job;
         application = await candidateJob.create({
             UserId: candidate.id,
             JobId: job.id
@@ -60,8 +60,9 @@ class ApplicationService{
     }
 
     async getAppliedByCandidates(inputs){
-        let job = await jobValidator.isJobPresent(inputs);
-        if(!job) return errMessage(false, 400, "Job does not exist.");
+        let obj = await applicationValidator.validateGetApplyingCandidates(inputs);
+        if(!obj.status) return obj;
+        let job = obj.data;
         if(job.postedById != inputs.user_id){
             return errMessage(false, 403, "You did not post this job.");
         }

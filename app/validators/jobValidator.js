@@ -21,7 +21,13 @@ async function validateNewJob(inputs) {
             return errMessage(false, 400, "Please enter a valid package.");
     }
 
-    const job = await isJobPresent(inputs);
+    let job = await Job.findOne({
+        where: {
+            title: inputs.title,
+            description: inputs.description,
+            company: inputs.company
+        }
+    });
     if (job)
         return errMessage(false, 400, "Job already exists.");
 
@@ -37,7 +43,9 @@ async function validateGetJob(inputs) {
     if (!validator.isUUID(inputs.job_id))
         return errMessage(false, 400, "Job id is not valid.");
 
-    let job = await isJobPresent(inputs);
+    let job = await Job.findOne({
+        where: { uuid: inputs.job_id }
+    });
     if (!job) return errMessage(false, 400, "Job does not exist.");
     return {
         status: true,
@@ -52,7 +60,9 @@ async function validateDeleteJob(inputs) {
     if (!validator.isUUID(inputs.job_id))
         return errMessage(false, 400, "Job id is not valid.");
 
-    let job = await isJobPresent(inputs);
+    let job = await Job.findOne({
+        where: { uuid: inputs.job_id }
+    });
     if (!job)
         return errMessage(false, 400, "Job does not exist.");
 
@@ -72,17 +82,10 @@ async function isJobPresent(inputs) {
         });
     }
 
-    if (inputs.title) {
-        job = await Job.findOne({
-            where: {
-                title: inputs.title,
-                description: inputs.description,
-                company: inputs.company
-            }
-        });
-    }
-
-    return job;
+    if (job)
+        return { status: true, data: job };
+    else
+        return errMessage(false, 400, "Job id is not valid.");
 }
 
 module.exports = { validateNewJob, validateGetJob, validateDeleteJob, isJobPresent };

@@ -10,19 +10,22 @@ async function validateSignup(inputs) {
     if (!inputs.name)
         return errMessage(false, 400, "Name is required.");
     if (!inputs.role)
-        return errMessage(false, 400, "Role is required. Please enter 1 or 2.");
+        return errMessage(false, 400, "Role is required. Please enter 1 or 2.(1 for recruiter and 2 for candidate)");
 
     if (!validator.isEmail(inputs.email))
         return errMessage(false, 400, "Email is not valid.");
     if (!validator.isLength(inputs.password, { min: 8, max: 100 }))
         return errMessage(false, 400, "Password must be at least 8 characters.");
     if (!validator.isAlpha(inputs.name))
-        return errMessage(false, 400, "Name cannot contain any special characters.");
+        return errMessage(false, 400, "Name cannot contain any numbers or special characters.");
     if (!validator.isIn(inputs.role, ["1", "2"]))
-        return errMessage(false, 400, "Role is not valid. Please enter 1 or 2.");
+        return errMessage(false, 400, "Role is not valid. Please enter 1 or 2.(1 for recruiter and 2 for candidate)");
     if (inputs.phone) {
         if (!validator.isMobilePhone(inputs.phone))
             return errMessage(false, 400, "Phone no. is not valid.");
+
+        if (!validator.isLength(inputs.phone, { min: 7, max: 10 }))
+            return errMessage(false, 400, "Phone no. must contain at least 7 digits and at most 10 digits.");
     }
 
     const user = await isUserPresent(inputs);
