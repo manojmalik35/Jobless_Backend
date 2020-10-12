@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 const { KEY } = require("../configs/config");
 const validate = require("../validators/validator");
-const isDuplicate = require("../validators/duplicateFinder");
+const {isDuplicate} = require("../validators/duplicateFinder");
 const {errMessage} = require("../utilities/helper");
 const UserService = require("../services/userService");
 const AuthService = require("../services/authService");

@@ -1,5 +1,5 @@
 const UserService = require("../services/userService");
-const isDuplicate = require("../validators/duplicateFinder");
+const {isDuplicate} = require("../validators/duplicateFinder");
 const validate = require("../validators/validator");
 
 const userService = new UserService();

@@ -1,6 +1,6 @@
 const validate = require("../validators/validator");
 const JobService = require("../services/jobService");
-const isDuplicate = require("../validators/duplicateFinder");
+const { isDuplicate, isJobPresent } = require("../validators/duplicateFinder");
 
 const jobService = new JobService();
 
@@ -15,6 +15,16 @@ module.exports.createNewJob = async function (req, res) {
     }
 
     inputs.postedById = user.id;
+    let isPresent = await isJobPresent(inputs);
+    if (isPresent){
+        return res.status(400).json({
+            status : "error",
+            code : 400,
+            message : "Job already present."
+        });
+    }
+
+
     let job = await jobService.create(inputs);
     // await user.addJob(job);
     // console.log((await user.getJobs()).toJSON());
@@ -43,6 +53,7 @@ module.exports.getJob = async function (req, res) {
     }
 
     inputs.job_id = job_id;
+    let isPresent = await isDuplicate(inputs);
     if (!isPresent)
         return res.status(400).json(errMessage("error", 400, "id", "Job not found"))
 

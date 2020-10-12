@@ -1,4 +1,4 @@
-const isDuplicate = require("../validators/duplicateFinder");
+const {isDuplicate} = require("../validators/duplicateFinder");
 const validate = require("../validators/validator");
 const ApplicationService = require("../services/applicationService");
 

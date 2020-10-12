@@ -37,4 +37,18 @@ async function isDuplicate(inputs){
     }
 }
 
-module.exports = isDuplicate;
+async function isJobPresent(inputs){
+    let job = await Job.findOne({
+        where : {
+            title : inputs.title,
+            package : inputs.package,
+            company : inputs.company,
+            postedById : inputs.postedById
+        }
+    });
+
+    if(job) return true;
+    return false;
+}
+
+module.exports = { isDuplicate, isJobPresent };
