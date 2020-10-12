@@ -11,10 +11,7 @@ module.exports.createApplication = async function (req, res) {
         let obj = await applicationService.create(inputs);
         if(!obj.status) return res.json(obj);
         let application = obj.data;
-        res.status(201).json(succMessage(true, 201, {
-            UserId : application.dataValues.UserId,
-            JobId : application.dataValues.JobId
-        }, "You have successfully applied for the job."));
+        res.status(201).json(succMessage(true, 201, null, "You have successfully applied for the job."));
 }
 
 module.exports.viewAppliedByCandidates = async function (req, res) {
