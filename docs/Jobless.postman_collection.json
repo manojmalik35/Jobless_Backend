@@ -44,7 +44,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"email\" : \"prateek@gmail.com\",\n    \"password\" : \"12345678\"\n}",
+							"raw": "{\n    \"email\" : \"pankaj@gmail.com\",\n    \"password\" : \"123456789\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -73,7 +73,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"email\" : \"pankaj@gmail.com\"\n}",
+							"raw": "{\n    \"email\" : \"krishna@gmail.com\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -139,10 +139,29 @@
 				{
 					"name": "Admin Login",
 					"request": {
-						"method": "GET",
+						"method": "POST",
 						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\" : \"admin@jobless.com\",\n    \"password\" : \"password\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
 						"url": {
-							"raw": ""
+							"raw": "{{BASE_URL}}/api/v1/users/login/admin",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"login",
+								"admin"
+							]
 						}
 					},
 					"response": []
