@@ -8,7 +8,7 @@ module.exports = {
     const hash = encrypt('password');
 
     return queryInterface.bulkInsert(
-      'users',
+      'Users',
       [
         {
           uuid: uuid(),
@@ -27,7 +27,7 @@ module.exports = {
 
   down: (queryInterface, Sequelize) => {
     
-    return queryInterface.deleteOne('users', {
+    return queryInterface.deleteOne('Users', {
       where: {
         email: 'admin@jobless.com',
       },
