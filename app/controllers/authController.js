@@ -44,6 +44,26 @@ module.exports.login = async function (req, res) {
     }
 }
 
+module.exports.adminLogin = async function(req, res){
+
+    const inputs = req.body;
+    let obj = await authService.adminLogin(inputs);
+    if (!obj.status) return res.json(obj);
+    let user = obj.data;
+    if (user) {
+        const uuid = user.uuid;
+        const token = await jwt.sign({ uuid }, KEY);
+        res.status(200).json(succMessage(true, 200, {
+            email: user.email,
+            authToken: token,
+            uuid: uuid,
+            role: user.role
+        }, "User logged in."))
+    } else {
+        res.json(errMessage("error", 401, "Wrong password."));
+    }
+}
+
 module.exports.forgotPassword = async function (req, res) {
 
     const inputs = req.body;

@@ -13,6 +13,25 @@ class authService {
         let isValid = await validateLogin(inputs);
         if(!isValid.status) return isValid;
         const user = isValid.data;
+        if(user.role == 0)
+            return errMessage(false, 400, "You cannot login from here.");
+        let hash = {
+            iv: user.hash_iv,
+            content: user.password
+        }
+        const dbPass = decrypt(hash);
+        if (dbPass == inputs.password)
+            return {status : true, data : user};
+
+        return errMessage(false, 400, "Wrong password");
+    }
+
+    async adminLogin(inputs){
+        let isValid = await validateLogin(inputs);
+        if(!isValid.status) return isValid;
+        const user = isValid.data;
+        if(user.role != 0)
+            return errMessage(false, 400, "You cannot login from here.");
         let hash = {
             iv: user.hash_iv,
             content: user.password
@@ -29,15 +48,15 @@ class authService {
         if(!isValid.status) return isValid;
         const user = isValid.data;
         let email = user.email;
-        // Expire any tokens that were previously set for this user. That prevents old tokens from being used.
+        
         let prevToken = await ResetToken.findOne({
             where: { email }
         });
 
         let token;
-        // //token expires after 1 hour
+        
         var expireDate = new Date();
-        expireDate.setTime(expireDate.getTime() + (60 * 60 * 1000));//minutes to milliseconds
+        expireDate.setTime(expireDate.getTime() + (60 * 60 * 1000));
         if (prevToken == null) {
             token = crypto.randomBytes(32).toString('base64');
             await ResetToken.create({
@@ -55,13 +74,13 @@ class authService {
             let updatedAt = prevToken.updatedAt;
             let currTime = new Date();
             let diff = currTime - updatedAt;
-            if (diff < 60000) {//within 1 min
+            if (diff < 60000) {
                 return errMessage(false, 400, "1 min has not been passed since the previous request.");
             }
 
-            if (diff < 600000)  // if its within 10 minutes
+            if (diff < 600000) 
                 token = prevToken.token;
-            else//if its after 10 minutes
+            else
                 token = crypto.randomBytes(32).toString('base64');
 
             await ResetToken.update({
@@ -73,7 +92,7 @@ class authService {
             })
         }
 
-        // create email
+        
         const message = {
             to: email,
             subject: "Reset Password",
@@ -89,14 +108,14 @@ class authService {
         let isValid = await validateResetPassword(inputs);
         if(!isValid.status) return isValid;
 
-        // This code clears all expired tokens. You should move this to a cronjob if you have a big site. We just include this in here as a demonstration.
+        
         await ResetToken.destroy({
             where: {
                 expiration: { [Op.lt]: Sequelize.fn('CURDATE') },
             }
         });
 
-        //find the token
+        
         let record = await ResetToken.findOne({
             where: {
                 email: inputs.email,
@@ -109,7 +128,7 @@ class authService {
             return errMessage(false, 400, "Token has expired. Please try password reset again.");
         }
 
-        //update token
+
         await ResetToken.destroy({
             where: {
                 email: record.email

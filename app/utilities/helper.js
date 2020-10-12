@@ -5,7 +5,7 @@ const { ALGO, SK } = require('../configs/config');
 
 const algorithm = ALGO;
 const secretKey = SK;
-const iv = crypto.randomBytes(16); //initialization vector
+const iv = crypto.randomBytes(16); 
 
 const encrypt = (text) => {
   const cipher = crypto.createCipheriv(algorithm, secretKey, iv);
@@ -45,7 +45,7 @@ const Email = async function (options) {
     });
 
     const emailOptions = {
-      from: '"Manoj" <admin@apple.com>', // sender address
+      from: '"Manoj" <admin@apple.com>', 
       to: options.to,
       subject: options.subject,
       text: options.text,

@@ -14,8 +14,8 @@ async function validateSignup(inputs) {
 
     if (!validator.isEmail(inputs.email))
         return errMessage(false, 400, "Email is not valid.");
-    if (!validator.isLength(inputs.password, { min: 8, max: 100 }))
-        return errMessage(false, 400, "Password must be at least 8 characters.");
+    if (!validator.isLength(inputs.password, { min: 6, max: 100 }))
+        return errMessage(false, 400, "Password must be at least 6 characters.");
     if (!validator.isAlpha(inputs.name))
         return errMessage(false, 400, "Name cannot contain any numbers or special characters.");
     if (!validator.isIn(inputs.role, ["1", "2"]))
@@ -45,14 +45,13 @@ async function validateLogin(inputs) {
 
     if (!validator.isEmail(inputs.email))
         return errMessage(false, 400, "Email is not valid.");
-    if (!validator.isLength(inputs.password, { min: 8, max: 100 }))
-        return errMessage(false, 400, "Password must be at least 8 characters.");
+    if (!validator.isLength(inputs.password, { min: 6, max: 100 }))
+        return errMessage(false, 400, "Password must be at least 6 characters.");
 
     const user = await isUserPresent(inputs);
 
-    if (user == null) {
+    if (user == null) 
         return errMessage(false, 400, "User does not exist.");
-    }
 
     return {
         status: true,
@@ -92,8 +91,8 @@ async function validateResetPassword(inputs) {
 
     if (!validator.isEmail(inputs.email))
         return errMessage(false, 400, "Email is not valid.");
-    if (!validator.isLength(inputs.password, { min: 8, max: 100 }))
-        return errMessage(false, 400, "Password must be at least 8 characters.");
+    if (!validator.isLength(inputs.password, { min: 6, max: 100 }))
+        return errMessage(false, 400, "Password must be at least 6 characters.");
     if (!validator.equals(inputs.confirmPassword, inputs.password))
         return errMessage(false, 400, "Password does not match with confirmPassword.");
     if (!validator.isBase64(inputs.token))
