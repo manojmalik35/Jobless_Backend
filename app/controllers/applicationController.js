@@ -1,86 +1,60 @@
-const {isDuplicate} = require("../validators/duplicateFinder");
-const validate = require("../validators/validator");
 const ApplicationService = require("../services/applicationService");
+const { succMessage} = require("../utilities/helper");
 
 const applicationService = new ApplicationService();
 
 module.exports.createApplication = async function (req, res) {
-    // try {
-
+    
         let candidate = req.user;
         let inputs = req.body;
-        inputs.id = inputs.job_id;
-        let isValid = validate(inputs);
-        if (isValid.status == "error") {
-            return res.status(400).json(isValid);
-        }
-
-        let isPresent = await isDuplicate(inputs);
-        if (!isPresent)
-            return res.status(400).json(errMessage("error", 400, "id", "Job not found"))
-
         inputs.candidate = candidate;
-        let application = await applicationService.create(inputs);
-        application.dataValues.id = undefined;
-
-        res.status(201).json({
-            status: "ok",
-            data: application
-        });
-
-    // } catch (err) {
-    //     console.log(err);
-    //     res.json({ err })
-    // }
+        let obj = await applicationService.create(inputs);
+        if(!obj.status) return res.json(obj);
+        let application = obj.data;
+        res.status(201).json(succMessage(true, 201, {
+            UserId : application.dataValues.UserId,
+            JobId : application.dataValues.JobId
+        }, "You have successfully applied for the job."));
 }
 
 module.exports.viewAppliedByCandidates = async function (req, res) {
-    let user = req.user;
-    let job_id = req.params.job_id;
-    let inputs = {id : job_id};
-    let isValid = validate(inputs);
-    if (isValid.status == "error") {
-        return res.status(400).json(isValid);
-    }
-
-    inputs.job_id = job_id;
-    let isPresent = await isDuplicate(inputs);
-    if (!isPresent)
-        return res.status(400).json(errMessage("error", 400, "id", "Job not found"));
-
-    let applyingUsers = await applicationService.getAppliedByCandidates(inputs);
-    for(let i = 0; i < applyingUsers.length; i++){
-        applyingUsers[i].id = undefined;
-        applyingUsers[i].Jobs = undefined;
-    }
-
-    res.status(200).json({
-        status : "ok",
-        users: applyingUsers
+    let inputs = req.params;
+    inputs.user_id = req.user.id;
+    let obj = await applicationService.getAppliedByCandidates(inputs);
+    if(!obj.status) return res.json(obj);
+    let applyingUsers = obj.data;
+    applyingUsers = applyingUsers.map(user=>{
+        return {
+            uuid : user.uuid,
+            name : user.name,
+            email : user.email,
+            phone : user.phone
+        }
     })
+
+    res.status(200).json(succMessage(true, 200, applyingUsers, "These are the candidates who applied for this job."));
 }
 
 module.exports.viewAppliedJobs = async function (req, res) {
-    let candidate_id = req.params.candidate_id;
-    let inputs = { id: candidate_id };
-    let isValid = validate(inputs);
-    if (isValid.status == "error") {
-        return res.status(400).json(isValid);
-    }
+    let user = req.user;
+    let inputs = {};
+    if(user.role == 0)
+        inputs = req.params;
+    else
+        inputs.candidate_id = user.uuid;
 
-    inputs.user_id = candidate_id;
-    let isPresent = await isDuplicate(inputs);
-    if (!isPresent)
-        return res.status(400).json(errMessage("error", 400, "id", "Candidate not found"));
-
-    let appliedJobs = await applicationService.getAppliedJobs(inputs);
-    for(let i = 0; i < appliedJobs.length; i++){
-        appliedJobs[i].id = undefined;
-        appliedJobs[i].Users = undefined;
-    }
-    res.status(200).json({
-        status : "ok",
-        jobs: appliedJobs
+    let obj = await applicationService.getAppliedJobs(inputs);
+    if(!obj.status) return res.json(obj);
+    let appliedJobs = obj.data;
+    appliedJobs = appliedJobs.map(job=>{
+        return {
+            uuid : job.uuid,
+            title : job.title,
+            description : job.description,
+            package : job.package,
+            company : job.company
+        }
     })
+    res.status(200).json(succMessage(true, 200, appliedJobs, "Applied jobs fetched successfully."))
 }
 

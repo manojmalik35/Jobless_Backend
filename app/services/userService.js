@@ -1,69 +1,53 @@
-const { encrypt } = require("../utilities/helper");
+const { encrypt, succMessage } = require("../utilities/helper");
 const User = require("../models/userModel");
+const userValidator = require("../validators/userValidator");
 
 class UserService {
 
     async create(inputs) {
+        let isValid = await userValidator.validateSignup(inputs);
+        if (!isValid.status) return isValid;
         const hash = encrypt(inputs.password);
         inputs.hash_iv = hash.iv;
         inputs.password = hash.content;
         const user = await User.create(inputs);
-        return user;
+        return { status: true, data: user };
+    }
+
+    async getAllUsers(inputs) {
+        let isValid = await userValidator.validateGetAllUsers(inputs);
+        if (!isValid.status) return isValid;
+
+        let users = await User.findAll({
+            where: { role: inputs.role }
+        });
+
+        return { status: true, data: users };
     }
 
     async getUser(inputs) {
-        let user;
-        if (inputs.email) {
-            user = await User.findOne({
-                where: { email: inputs.email }
-            });
-        }
 
-        if (inputs.uuid) {
-            user = await User.findOne({
-                where: { uuid: inputs.uuid }
-            });
-        }
+        let isValid = await userValidator.validateGetUser(inputs);
+        if (!isValid.status) return isValid;
 
-        if(inputs.role){
-            user = await User.findAll({
-                where : {
-                    role : inputs.role
-                }
-            })
-        }
-        return user;
-    }
-
-    async updateUser(inputs){
-        let user_id = inputs.id;
-        inputs.id = undefined;
-        inputs.user_id = undefined;
-        await User.update(inputs, {
-            where: {
-                id: user_id
-            }
+        let user = await User.findOne({
+            where: { uuid: inputs.uuid }
         });
 
-        return {
-            status : "ok",
-            code : 200,
-            message : "User updated."
-        }
+        return {status : true, data : user};
     }
 
-    async deleteUser(inputs){
+    async deleteUser(inputs) {
+        let isValid = await userValidator.validateDeleteUser(inputs);
+        if (!isValid.status) return isValid;
+        let user = isValid.data;
         await User.destroy({
             where: {
-                id: inputs.user_id
+                id: user.id
             }
         });
 
-        return {
-            status : "ok",
-            code : 204,
-            message : "User deleted."
-        }
+        return succMessage(true, 204, null, "User deleted.");
     }
 }
 

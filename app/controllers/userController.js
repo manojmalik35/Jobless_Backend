@@ -1,78 +1,30 @@
 const UserService = require("../services/userService");
-const {isDuplicate} = require("../validators/duplicateFinder");
-const validate = require("../validators/validator");
+const { succMessage } = require("../utilities/helper");
 
 const userService = new UserService();
 module.exports.getAllUsers = async function (req, res) {
-    // try {
 
-        let inputs = req.query;
-        let isValid = validate(inputs);
-        if(isValid.status == "error"){
-            return res.status(400).json(isValid);
+    let inputs = req.query;
+    let obj = await userService.getAllUsers(inputs);
+    if (!obj.status) return res.json(obj);
+    let users = obj.data;
+
+    users = users.map(user => {
+        return {
+            uuid: user.uuid,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            phone: user.phone
         }
-
-        let users = await userService.getUser(inputs);
-        for(let i = 0; i < users.length; i++){
-            users[i].dataValues.id = undefined;
-        }
-
-        res.status(200).json({
-            status : "ok",
-            data : users
-        })
-
-    // } catch (err) {
-    //     console.log(err);
-    //     res.json({ err });
-    // }
-}
-
-
-
-module.exports.updateUser = async function (req, res) {
-    // try {
-
-        let user_id = req.params.user_id;
-        let inputs = req.body;
-        inputs.id = user_id;
-        let isValid = validate(inputs);
-        if(isValid.status == "error"){
-            return res.status(400).json(isValid);
-        }
-        
-        inputs.user_id = inputs.id;
-        let isPresent = await isDuplicate(inputs);
-        if(!isPresent)
-            return res.status(400).json(errMessage("error", 400, "id", "User not found"))
-
-        let result = await userService.updateUser(updateObj);
-        res.status(200).json(result);
-    // } catch (err) {
-    //     console.log(err);
-    //     res.json({ err })
-    // }
+    });
+    res.status(200).json(succMessage(true, 200, users, "Users fetched successfully."))
 }
 
 module.exports.deleteUser = async function (req, res) {
-    // try {
-
-        let user_id = req.params.user_id;
-        let inputs = { id : user_id}
-        let isValid = validate(inputs);
-        if(isValid.status == "error"){
-            return res.status(400).json(isValid);
-        }
-
-        inputs = {user_id};
-        let isPresent = await isDuplicate(inputs);
-        if(!isPresent)
-            return res.status(400).json(errMessage("error", 400, "email", "User not found"))
-
-        let result = await userService.deleteUser(inputs);
-        res.status(200).json(result);
-    // } catch (err) {
-    //     console.log(err);
-    //     res.json({ err })
-    // }
+    
+    let inputs = req.params;
+    let result = await userService.deleteUser(inputs);
+    res.json(result);
+    
 }

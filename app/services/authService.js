@@ -1,47 +1,34 @@
-const { encrypt, decrypt } = require("../utilities/helper");
+const { encrypt, decrypt, errMessage, succMessage, Email } = require("../utilities/helper");
 const User = require("../models/userModel");
 const ResetToken = require("../models/tokenModel");
 const crypto = require("crypto");
 const { TCOUNT } = require("../configs/config");
-const { Email } = require("../utilities/helper");
+const { validateLogin, validateForgotPassword, validateResetPassword } = require("../validators/userValidator");
 const Sequelize = require("sequelize");
 const Op = Sequelize.Op;
 
 class authService {
 
     async login(inputs) {
-        const user = await User.findOne({
-            where: {
-                email: inputs.email
-            }
-        });
-
+        let isValid = await validateLogin(inputs);
+        if(!isValid.status) return isValid;
+        const user = isValid.data;
         let hash = {
             iv: user.hash_iv,
             content: user.password
         }
         const dbPass = decrypt(hash);
         if (dbPass == inputs.password)
-            return user;
+            return {status : true, data : user};
 
         return undefined;
-
     }
 
     async forgotPassword(inputs) {
-        let email = inputs.email;
-        let user = await User.findOne({
-            where: { email }
-        });
-
-        if (user == null) {
-            return {
-                status: "ok",
-                code: 404,
-                message: "User not found"
-            }
-        }
-
+        let isValid = await validateForgotPassword(inputs);
+        if(!isValid.status) return isValid;
+        const user = isValid.data;
+        let email = user.email;
         // Expire any tokens that were previously set for this user. That prevents old tokens from being used.
         let prevToken = await ResetToken.findOne({
             where: { email }
@@ -62,23 +49,14 @@ class authService {
             });
         } else {
 
-            if (prevToken.count >= TCOUNT) {
-                return {
-                    status: "error",
-                    code: 400,
-                    message: `You have already requested token ${TCOUNT} times. Limit exceeded`
-                }
-            }
+            if (prevToken.count >= TCOUNT) 
+                return errMessage(false, 400, `You have already requested token ${TCOUNT} times. Limit exceeded`)
 
             let updatedAt = prevToken.updatedAt;
             let currTime = new Date();
             let diff = currTime - updatedAt;
             if (diff < 60000) {//within 1 min
-                return {
-                    status: "error",
-                    code: 111,
-                    message: "1 min has not been passed since the previous request."
-                }
+                return errMessage(false, 400, "1 min has not been passed since the previous request.");
             }
 
             if (diff < 600000)  // if its within 10 minutes
@@ -104,14 +82,12 @@ class authService {
         };
 
         Email(message);
-        return {
-            status: "ok",
-            code: 200,
-            message: "Email has been sent."
-        }
+        return succMessage(true, 200, null, "Email has been sent.");
     }
 
     async resetPassword(inputs) {
+        let isValid = await validateResetPassword(inputs);
+        if(!isValid.status) return isValid;
 
         // This code clears all expired tokens. You should move this to a cronjob if you have a big site. We just include this in here as a demonstration.
         await ResetToken.destroy({
@@ -125,24 +101,12 @@ class authService {
             where: {
                 email: inputs.email,
                 expiration: { [Op.gt]: Sequelize.fn('CURDATE') },
-                token: inputs.resetToken
+                token: inputs.token
             }
         });
 
         if (record == null) {
-            return {
-                status : "error",
-                code : 112,
-                message: 'Token has expired. Please try password reset again.'
-            }
-        }
-
-        if (inputs.password !== inputs.confirmPassword) {
-            return {
-                status: 'error',
-                code : 113,
-                message: 'Passwords do not match. Please try again.'
-            }
+            return errMessage(false, 400, "Token has expired. Please try password reset again.");
         }
 
         //update token
@@ -162,11 +126,7 @@ class authService {
             }
         });
 
-        return {
-            status : "ok",
-            code : 200,
-            message: "Password has been reset. Please login again."
-        }
+        return succMessage(true, 200, null, "Password has been reset. Please login again.");
     }
 }
 

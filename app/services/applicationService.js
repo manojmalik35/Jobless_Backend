@@ -1,20 +1,23 @@
 const candidateJob = require("../models/candidateJobModel");
 const Job = require("../models/jobModel");
 const User = require("../models/userModel");
-const { Email } = require("../utilities/helper");
+const { errMessage, succMessage, Email } = require("../utilities/helper");
+const applicationValidator = require("../validators/applicationValidator");
+const jobValidator = require("../validators/jobValidator");
+const userValidator = require("../validators/userValidator");
 
 class ApplicationService{
 
     async create(inputs){
-        let {candidate, job_id} = inputs;
-        let candidate_id = candidate.id;
-        let application = await candidateJob.create({
-            UserId: candidate_id,
-            JobId: job_id
-        });
-
-        let job = await Job.findOne({
-            where: { id: job_id }
+        let job = await jobValidator.isJobPresent(inputs);
+        if(!job) return errMessage(false, 400, "Job does not exist.");
+        inputs.job = job;
+        let application = await applicationValidator.isApplicationPresent(inputs);
+        if(application) return errMessage(false, 400, "You have already applied for this job.");
+        let {candidate} = inputs;
+        application = await candidateJob.create({
+            UserId: candidate.id,
+            JobId: job.id
         });
 
         let recruiter = await User.findOne({
@@ -34,15 +37,18 @@ class ApplicationService{
             html: `<b>Hello! ${recruiter.name}, We are pleased to inform you that a candidate named ${candidate.name} has successfully applied for the job ${job.title} posted by you.</b>`
         };
         Email(message);
-        return application;
+        return {status : true, data : application};
     }
 
     async getAppliedJobs(inputs){
+        inputs.user_id = inputs.candidate_id;
+        let user = await userValidator.isUserPresent(inputs);
+        if(!user) return errMessage(false, 400, "Candidate does not exist.")
         let appliedJobs = await Job.findAll({
             include: [{
                 model: User,
                 where: {
-                    id: inputs.id
+                    id: user.id
                 }
             }]
         });
@@ -50,16 +56,21 @@ class ApplicationService{
         appliedJobs = appliedJobs.map(job => {
             return job.dataValues;
         })
-        return appliedJobs;
+        return {status : true, data : appliedJobs};
     }
 
     async getAppliedByCandidates(inputs){
+        let job = await jobValidator.isJobPresent(inputs);
+        if(!job) return errMessage(false, 400, "Job does not exist.");
+        if(job.postedById != inputs.user_id){
+            return errMessage(false, 403, "You did not post this job.");
+        }
 
         let applyingUsers = await User.findAll({
             include : [{
                 model : Job,
                 where : {
-                    id : inputs.job_id
+                    id : job.id
                 }
             }]
         });
@@ -68,7 +79,7 @@ class ApplicationService{
             return user.dataValues;
         })
 
-        return applyingUsers;
+        return {status : true, data : applyingUsers};
     }
 }
 

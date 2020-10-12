@@ -56,9 +56,15 @@ const Email = async function (options) {
     }
 }
 
-const errMessage = function (status, code, field, message) {
+const errMessage = function (status, code, message) {
     return {
-        status, code, field, message
+        status, code, message
+    }
+}
+
+const succMessage = function(status, code, data, message){
+    return {
+        status, code, data, message
     }
 }
 
@@ -66,5 +72,6 @@ module.exports = {
     encrypt,
     decrypt,
     Email,
-    errMessage
+    errMessage,
+    succMessage
 };

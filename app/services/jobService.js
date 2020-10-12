@@ -1,26 +1,55 @@
 const Job = require("../models/jobModel");
 const User = require("../models/userModel");
+const { succMessage, errMessage } = require("../utilities/helper");
 require("../models/associations");
+const jobValidator = require("../validators/jobValidator");
+const {isUserPresent} = require("../validators/userValidator");
 
 class JobService {
 
     async create(inputs) {
+        let isValid = await jobValidator.validateNewJob(inputs);
+        if(!isValid.status) return isValid;
+
         let job = await Job.create(inputs);
-        return job;
+        return {
+            status : true,
+            data : job
+        }
     }
 
     async getJob(inputs) {
-        let job = await Job.findOne({
-            where: { id: inputs.id }
-        });
-        return job;
+        let isValid = await jobValidator.validateGetJob(inputs);
+        if(!isValid.status) return isValid;
+
+        let job = isValid.data;
+        return {
+            status : true, 
+            data : job
+        }
     }
 
     async getJobs(inputs) {
 
         let allJobs = await Job.findAll();
+        allJobs = allJobs.map(job => {
+            return job.dataValues;
+        })
         if (inputs.role == 0) {
             return allJobs;
+        }
+
+        if(inputs.role == 1){
+            let postedJobs = await Job.findAll({
+                where: {
+                    postedById: inputs.id
+                }
+            });
+    
+            postedJobs = postedJobs.map(job => {
+                return job.dataValues;
+            })
+            return postedJobs;
         }
 
         let appliedJobs = await Job.findAll({
@@ -32,14 +61,10 @@ class JobService {
             }]
         });
 
-        allJobs = allJobs.map(job => {
-            return job.dataValues;
-        })
         appliedJobs = appliedJobs.map(job => {
             return job.dataValues;
         })
 
-        // console.log(appliedJobs);
         let availableJobs = allJobs.filter(job => {
             for (let i = 0; i < appliedJobs.length; i++) {
                 if (appliedJobs[i].id === job.id)
@@ -52,9 +77,12 @@ class JobService {
     }
 
     async getPostedJobs(inputs) {
+        inputs.user_id = inputs.recruiter_id;
+        let user = await isUserPresent(inputs);
+        if(!user) return errMessage(false, 400, "Recruiter does not exist.");
         let jobs = await Job.findAll({
             where: {
-                postedById: inputs.id
+                postedById: user.id
             }
         });
 
@@ -62,25 +90,17 @@ class JobService {
     }
 
     async deleteJob(inputs) {
+        let isValid = await jobValidator.validateDeleteJob(inputs);
+        if(!isValid.status) return isValid;
+        let job = isValid.data;
         await Job.destroy({
             where: {
-                id: inputs.id
+                id: job.id
             }
         });
 
-        return {
-            status: "ok",
-            message: "Job deleted."
-        }
+        return succMessage(true, 204, null, "Job successfully deleted");
     }
 }
 
 module.exports = JobService;
-
-// let appliedJobs = await sequelize.query(`select j.* from jobs j, candidatejobs c where j.id=c.JobId && c.UserId=${inputs.id};`, {
-        //     plain: false,
-        //     // logging : console.log,
-        //     model: Job,
-        //     mapToModel: true,
-        //     type: QueryTypes.SELECT
-        // });
