@@ -21,7 +21,7 @@ class authService {
         if (dbPass == inputs.password)
             return {status : true, data : user};
 
-        return undefined;
+        return errMessage(false, 400, "Wrong password");
     }
 
     async forgotPassword(inputs) {
