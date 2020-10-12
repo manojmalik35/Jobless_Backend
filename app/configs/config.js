@@ -5,5 +5,6 @@ module.exports = {
     KEY : process.env.JWT_KEY,
     ALGO : process.env.CRYPTO_ALGO,
     SK : process.env.CRYPTO_KEY,
-    TCOUNT : process.env.TOKEN_COUNT
+    TCOUNT : process.env.TOKEN_COUNT,
+    DB_HOST : process.env.DB_HOST
 }
