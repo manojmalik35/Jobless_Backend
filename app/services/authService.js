@@ -97,7 +97,8 @@ class authService {
             to: email,
             subject: "Reset Password",
             text: token,
-            html: `<b> To reset your password, click the link below </b> https://localhost:3000/api/v1/users/reset-password?token=${encodeURIComponent(token)}&email=${email}`
+            html: `<b> To reset your password, click the button below </b> 
+            <a href="https://${process.env.DOMAIN}/api/v1/users/reset-password?token=${encodeURIComponent(token)}&email=${email}">Click here </a>`
         };
 
         Email(message);

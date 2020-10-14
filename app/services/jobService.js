@@ -31,7 +31,11 @@ class JobService {
 
     async getJobs(inputs) {
 
-        let allJobs = await Job.findAll();
+        let allJobs = await Job.findAll({
+            order:[
+                ["updatedAt", "DESC"]
+            ]
+        });
         allJobs = allJobs.map(job => {
             return job.dataValues;
         })
@@ -43,7 +47,10 @@ class JobService {
             let postedJobs = await Job.findAll({
                 where: {
                     postedById: inputs.id
-                }
+                },
+                order:[
+                    ["updatedAt", "DESC"]
+                ]
             });
     
             postedJobs = postedJobs.map(job => {
@@ -57,7 +64,10 @@ class JobService {
                 model: User,
                 where: {
                     id: inputs.id
-                }
+                },
+                order:[
+                    ["updatedAt", "DESC"]
+                ]
             }]
         });
 
@@ -83,7 +93,10 @@ class JobService {
         let jobs = await Job.findAll({
             where: {
                 postedById: user.id
-            }
+            },
+            order:[
+                ["updatedAt", "DESC"]
+            ]
         });
 
         return jobs;

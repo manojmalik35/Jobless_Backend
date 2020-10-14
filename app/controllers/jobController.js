@@ -8,14 +8,15 @@ module.exports.createNewJob = async function (req, res) {
     let inputs = req.body;
     inputs.postedById = user.id;
     let obj = await jobService.create(inputs);
-    if (!obj.status) return res.json(obj);
+    if (!obj.status) return res.status(obj.code).json(obj);
     let job = obj.data;
     res.status(201).json(succMessage(true, 201, {
         uuid: job.dataValues.uuid,
         title: job.dataValues.title,
         description: job.dataValues.description,
         package: job.dataValues.package,
-        company: job.dataValues.company
+        company: job.dataValues.company,
+        createdAt : job.dataValues.createdAt
     }, "Job successfully posted."));
 }
 
@@ -23,7 +24,7 @@ module.exports.getJob = async function (req, res) {
 
     let inputs = req.params;
     let obj = await jobService.getJob(inputs);
-    if(!obj.status) return res.json(obj);
+    if(!obj.status) return res.status(obj.code).json(obj);
     let job = obj.data;
     res.status(200).json(succMessage(true, 200, {
         uuid: job.dataValues.uuid,
@@ -40,7 +41,7 @@ module.exports.getJobs = async function (req, res) {
     let user = req.user;
     let inputs = { role: user.role, id: user.id };
     let jobs = await jobService.getJobs(inputs);
-
+    if(!jobs) return res.status(200).json(succMessage(true, 200, null, "No jobs"))
     jobs = jobs.map(job => {
         return {
             uuid: job.uuid,
@@ -57,7 +58,7 @@ module.exports.getPostedJobs = async function (req, res) {
     
     let inputs = req.params;
     let jobs = await jobService.getPostedJobs(inputs);
-    if(!jobs) return errMessage(true, 200, null, "No jobs posted.");
+    if(!jobs) return res.status(200).succMessage(true, 200, null, "No jobs posted.");
     jobs = jobs.map(job => {
         return {
             uuid: job.dataValues.uuid,
@@ -75,5 +76,5 @@ module.exports.deleteJob = async function (req, res) {
     
     let inputs = req.params;
     let result = await jobService.deleteJob(inputs);
-    res.json(result);
+    res.status(result.code).json(result);
 }

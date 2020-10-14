@@ -6,7 +6,7 @@ module.exports.getAllUsers = async function (req, res) {
 
     let inputs = req.query;
     let obj = await userService.getAllUsers(inputs);
-    if (!obj.status) return res.json(obj);
+    if (!obj.status) return res.status(obj.code).json(obj);
     let users = obj.data;
 
     users = users.map(user => {
@@ -25,6 +25,6 @@ module.exports.deleteUser = async function (req, res) {
     
     let inputs = req.params;
     let result = await userService.deleteUser(inputs);
-    res.json(result);
+    res.status(result.code).json(result);
     
 }

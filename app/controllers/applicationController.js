@@ -9,8 +9,7 @@ module.exports.createApplication = async function (req, res) {
         let inputs = req.body;
         inputs.candidate = candidate;
         let obj = await applicationService.create(inputs);
-        if(!obj.status) return res.json(obj);
-        let application = obj.data;
+        if(!obj.status) return res.status(obj.code).json(obj);
         res.status(201).json(succMessage(true, 201, null, "You have successfully applied for the job."));
 }
 
@@ -18,7 +17,7 @@ module.exports.viewAppliedByCandidates = async function (req, res) {
     let inputs = req.params;
     inputs.user_id = req.user.id;
     let obj = await applicationService.getAppliedByCandidates(inputs);
-    if(!obj.status) return res.json(obj);
+    if(!obj.status) return res.status(obj.code).json(obj);
     let applyingUsers = obj.data;
     applyingUsers = applyingUsers.map(user=>{
         return {
@@ -41,7 +40,7 @@ module.exports.viewAppliedJobs = async function (req, res) {
         inputs.candidate_id = user.uuid;
 
     let obj = await applicationService.getAppliedJobs(inputs);
-    if(!obj.status) return res.json(obj);
+    if(!obj.status) return res.status(obj.code).json(obj);
     let appliedJobs = obj.data;
     appliedJobs = appliedJobs.map(job=>{
         return {

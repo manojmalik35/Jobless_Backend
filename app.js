@@ -41,7 +41,7 @@ app.use((req, res, next) => {
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/jobs", jobRouter);
 app.use("/api/v1/application", applicationRouter);
-var port = process.env.PORT || 3000;
+var port = process.env.PORT || 4000;
 app.listen(port, () => {
     console.log("Server is listening at port " + port);
 })

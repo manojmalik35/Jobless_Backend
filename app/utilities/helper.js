@@ -58,11 +58,11 @@ const Email = async function (options) {
   }
 };
 
-const errMessage = function (status, code, message) {
+const errMessage = function (status, code, errors) {
   return {
     status,
     code,
-    message,
+    errors,
   };
 };
 

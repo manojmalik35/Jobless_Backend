@@ -1,4 +1,4 @@
-const { encrypt, succMessage } = require("../utilities/helper");
+const { encrypt, succMessage, errMessage } = require("../utilities/helper");
 const User = require("../models/userModel");
 const userValidator = require("../validators/userValidator");
 
@@ -19,7 +19,10 @@ class UserService {
         if (!isValid.status) return isValid;
 
         let users = await User.findAll({
-            where: { role: inputs.role }
+            where: { role: inputs.role },
+            order : [
+                ["updatedAt", "DESC"]
+            ]
         });
 
         return { status: true, data: users };
@@ -34,7 +37,10 @@ class UserService {
             where: { uuid: inputs.uuid }
         });
 
-        return {status : true, data : user};
+        if(user)
+            return {status : true, data : user};
+        
+        return errMessage(false, 400, "User not found.");
     }
 
     async deleteUser(inputs) {
