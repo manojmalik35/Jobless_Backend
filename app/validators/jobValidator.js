@@ -1,24 +1,24 @@
 const validator = require("validator");
-const { errMessage } = require("../utilities/helper");
+const { errMessage, succMessage } = require("../utilities/helper");
 const Job = require("../models/jobModel");
 
 async function validateNewJob(inputs) {
     if (!inputs.title)
-        return errMessage(false, 400, "Title is required.");
+        return errMessage(false, 422, "Title is required.");
     if (!inputs.description)
-        return errMessage(false, 400, "Description is required.");
+        return errMessage(false, 422, "Description is required.");
     if (!inputs.company)
-        return errMessage(false, 400, "Company is required.");
+        return errMessage(false, 422, "Company is required.");
 
     if (!validator.isLength(inputs.title, { min: 5, max: 100 }))
-        return errMessage(false, 400, "Please enter valid job title.");
+        return errMessage(false, 422, "Please enter valid job title.");
     if (!validator.isLength(inputs.description, { min: 10, max: 1000 }))
-        return errMessage(false, 400, "Please enter a description of at least 10 characters.");
+        return errMessage(false, 422, "Please enter a description of at least 10 characters.");
     if (!validator.isLength(inputs.company, { min: 5, max: 1000 }))
-        return errMessage(false, 400, "Please enter a valid company name");
+        return errMessage(false, 422, "Please enter a valid company name");
     if (inputs.package) {
         if (!validator.isNumeric(inputs.package))
-            return errMessage(false, 400, "Please enter a valid package.");
+            return errMessage(false, 422, "Please enter a valid package.");
     }
 
     let job = await Job.findOne({
@@ -38,10 +38,10 @@ async function validateNewJob(inputs) {
 
 async function validateGetJob(inputs) {
     if (!inputs.job_id)
-        return errMessage(false, 400, "Job id is required.");
+        return errMessage(false, 422, "Job id is required.");
 
     if (!validator.isUUID(inputs.job_id))
-        return errMessage(false, 400, "Job id is not valid.");
+        return errMessage(false, 422, "Job id is not valid.");
 
     let job = await Job.findOne({
         where: { uuid: inputs.job_id }
@@ -55,10 +55,10 @@ async function validateGetJob(inputs) {
 
 async function validateDeleteJob(inputs) {
     if (!inputs.job_id)
-        return errMessage(false, 400, "Job id is required.");
+        return errMessage(false, 422, "Job id is required.");
 
     if (!validator.isUUID(inputs.job_id))
-        return errMessage(false, 400, "Job id is not valid.");
+        return errMessage(false, 422, "Job id is not valid.");
 
     let job = await Job.findOne({
         where: { uuid: inputs.job_id }
@@ -73,19 +73,19 @@ async function validateDeleteJob(inputs) {
 }
 
 async function isJobPresent(inputs) {
-    let job;
     if (inputs.job_id) {
         if (!validator.isUUID(inputs.job_id))
-            return errMessage(false, 400, "Job id is not valid.");
-        job = await Job.findOne({
+            return errMessage(false, 422, "Job id is not valid.");
+        let job = await Job.findOne({
             where: { uuid: inputs.job_id }
         });
+        if(job)
+            return succMessage(true, 200, job, "Job present.");
+
+        return errMessage(false, 400, "Job not present.");
     }
 
-    if (job)
-        return { status: true, data: job };
-    else
-        return errMessage(false, 400, "Job id is not valid.");
+    return errMessage(false, 422, "Job id is required.");
 }
 
 module.exports = { validateNewJob, validateGetJob, validateDeleteJob, isJobPresent };
