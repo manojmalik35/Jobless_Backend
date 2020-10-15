@@ -19,6 +19,7 @@ module.exports.viewAppliedByCandidates = async function (req, res) {
     let obj = await applicationService.getAppliedByCandidates(inputs);
     if(!obj.status) return res.status(obj.code).json(obj);
     let applyingUsers = obj.data;
+    if(applyingUsers.length == 0) return res.status(200).json(succMessage(true, 200, applyingUsers, "No candidates applied for this job."))
     applyingUsers = applyingUsers.map(user=>{
         return {
             uuid : user.uuid,
