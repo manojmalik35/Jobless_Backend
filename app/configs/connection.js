@@ -11,7 +11,7 @@ connection
     .authenticate()
     .then(async function() {
         console.log('Connection has been established successfully.');
-        await connection.sync();
+        await connection.sync({alter : true});
     })
     .catch(err => {
         console.error('Unable to connect to the database:', err);
