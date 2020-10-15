@@ -15,7 +15,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"email\" : \"tprateek@gmail.com\",\n    \"password\" : \"12345678\",\n    \"name\" : \"Prateek\",\n    \"role\" : \"2\",\n    \"phone\" : \"8765093\"\n}",
+							"raw": "{\n    \"email\" : \"alia@gmail.com\",\n    \"password\" : \"12345678\",\n    \"name\" : \"Alia Bhatt\",\n    \"role\" : \"2\",\n    \"phone\" : \"8765012345\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -44,7 +44,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"email\" : \"pankaj@gmail.com\",\n    \"password\" : \"123456789\"\n}",
+							"raw": "{\n    \"email\" : \"alia@gmail.com\",\n    \"password\" : \"123456789\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -73,7 +73,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"email\" : \"krishna@gmail.com\"\n}",
+							"raw": "{\n    \"email\" : \"alia@gmail.com\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -102,7 +102,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"password\" : \"123456789\",\n    \"confirmPassword\" : \"123456789\",\n    \"email\" : \"pankaj@gmail.com\",\n    \"token\" : \"qGhl78DEi+NyTG25PWwHCbbAgMaoa/dTBfGjsDLqkVA=\"\n}",
+							"raw": "{\n    \"password\" : \"123456789\",\n    \"confirmPassword\" : \"123456789\",\n    \"email\" : \"rec@gmail.com\",\n    \"token\" : \"tKBzQuYTJG3g3tdGlYe/Bm9trG4sFB9Qel7G0JAXWoc=\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -175,17 +175,21 @@
 				{
 					"name": "Post a Job",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{RECRUITER_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "{{RECRUITER_TOKEN}}",
-								"type": "text"
-							}
-						],
+						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"title\" : \"CAD Worker\",\n    \"description\" : \"You will be working on CAD\",\n    \"package\" : \"200000\",\n    \"company\" : \"Jaya and company\"\n}",
+							"raw": "{\n    \"title\" : \"Tester\",\n    \"description\" : \"You will be working in testing\",\n    \"package\" : \"2 lpa\",\n    \"company\" : \"Squareboat\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -209,16 +213,20 @@
 				{
 					"name": "Get Posted Jobs",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{RECRUITER_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "{{RECRUITER_TOKEN}}",
-								"type": "text"
-							}
-						],
+						"header": [],
 						"url": {
-							"raw": "{{BASE_URL}}/api/v1/jobs/",
+							"raw": "{{BASE_URL}}/api/v1/jobs/?page=1",
 							"host": [
 								"{{BASE_URL}}"
 							],
@@ -227,6 +235,12 @@
 								"v1",
 								"jobs",
 								""
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								}
 							]
 						}
 					},
@@ -235,14 +249,18 @@
 				{
 					"name": "Get candidates who applied",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{RECRUITER_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "{{RECRUITER_TOKEN}}",
-								"type": "text"
-							}
-						],
+						"header": [],
 						"url": {
 							"raw": "{{BASE_URL}}/api/v1/application/{{JOB_ID}}",
 							"host": [
@@ -267,16 +285,20 @@
 				{
 					"name": "Get list of available jobs",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{CANDIDATE_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "{{CANDIDATE_TOKEN}}",
-								"type": "text"
-							}
-						],
+						"header": [],
 						"url": {
-							"raw": "{{BASE_URL}}/api/v1/jobs",
+							"raw": "{{BASE_URL}}/api/v1/jobs?page=2",
 							"host": [
 								"{{BASE_URL}}"
 							],
@@ -284,6 +306,12 @@
 								"api",
 								"v1",
 								"jobs"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "2"
+								}
 							]
 						}
 					},
@@ -292,17 +320,21 @@
 				{
 					"name": "Apply to a job",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{CANDIDATE_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "{{CANDIDATE_TOKEN}}",
-								"type": "text"
-							}
-						],
+						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"job_id\" : \"1c639980-03d3-4aea-8521-c9c14bbb16c5\"\n}",
+							"raw": "{\n    \"job_id\" : \"\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -327,14 +359,18 @@
 				{
 					"name": "Get applied jobs",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{CANDIDATE_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "{{CANDIDATE_TOKEN}}",
-								"type": "text"
-							}
-						],
+						"header": [],
 						"url": {
 							"raw": "{{BASE_URL}}/api/v1/application/",
 							"host": [
@@ -353,14 +389,18 @@
 				{
 					"name": "Get a job",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{CANDIDATE_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "{{CANDIDATE_TOKEN}}",
-								"type": "text"
-							}
-						],
+						"header": [],
 						"url": {
 							"raw": "{{BASE_URL}}/api/v1/jobs/{{JOB_ID}}",
 							"host": [
@@ -385,16 +425,20 @@
 				{
 					"name": "Get all jobs",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{ADMIN_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "{{ADMIN_TOKEN}}",
-								"type": "text"
-							}
-						],
+						"header": [],
 						"url": {
-							"raw": "{{BASE_URL}}/api/v1/jobs",
+							"raw": "{{BASE_URL}}/api/v1/jobs?page=2",
 							"host": [
 								"{{BASE_URL}}"
 							],
@@ -402,6 +446,12 @@
 								"api",
 								"v1",
 								"jobs"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "2"
+								}
 							]
 						}
 					},
@@ -410,16 +460,20 @@
 				{
 					"name": "Get all Users by role",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{ADMIN_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "{{ADMIN_TOKEN}}",
-								"type": "text"
-							}
-						],
+						"header": [],
 						"url": {
-							"raw": "{{BASE_URL}}/api/v1/users?role={{ROLE}}",
+							"raw": "{{BASE_URL}}/api/v1/users?role={{ROLE}}&page=3",
 							"host": [
 								"{{BASE_URL}}"
 							],
@@ -432,6 +486,10 @@
 								{
 									"key": "role",
 									"value": "{{ROLE}}"
+								},
+								{
+									"key": "page",
+									"value": "3"
 								}
 							]
 						}
@@ -441,14 +499,18 @@
 				{
 					"name": "View applied jobs by a candidate",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{ADMIN_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "{{ADMIN_TOKEN}}",
-								"type": "text"
-							}
-						],
+						"header": [],
 						"url": {
 							"raw": "{{BASE_URL}}/api/v1/application/admin/{{CANDIDATE_ID}}",
 							"host": [
@@ -468,16 +530,20 @@
 				{
 					"name": "View posted jobs by a recruiter",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{ADMIN_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "{{ADMIN_TOKEN}}",
-								"type": "text"
-							}
-						],
+						"header": [],
 						"url": {
-							"raw": "{{BASE_URL}}/api/v1/jobs/admin/{{RECRUITER_ID}}",
+							"raw": "{{BASE_URL}}/api/v1/jobs/admin/{{RECRUITER_ID}}?page=2",
 							"host": [
 								"{{BASE_URL}}"
 							],
@@ -487,6 +553,12 @@
 								"jobs",
 								"admin",
 								"{{RECRUITER_ID}}"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "2"
+								}
 							]
 						}
 					},
@@ -495,14 +567,18 @@
 				{
 					"name": "Delete job",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{ADMIN_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "DELETE",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "{{ADMIN_TOKEN}}",
-								"type": "text"
-							}
-						],
+						"header": [],
 						"url": {
 							"raw": "{{BASE_URL}}/api/v1/jobs/{{JOB_ID}}",
 							"host": [
@@ -521,14 +597,18 @@
 				{
 					"name": "Delete a user",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{ADMIN_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "DELETE",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "{{ADMIN_TOKEN}}",
-								"type": "text"
-							}
-						],
+						"header": [],
 						"url": {
 							"raw": "{{BASE_URL}}/api/v1/users/{{USER_ID}}",
 							"host": [
@@ -547,14 +627,18 @@
 				{
 					"name": "Get a job",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{ADMIN_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "{{ADMIN_TOKEN}}",
-								"type": "text"
-							}
-						],
+						"header": [],
 						"url": {
 							"raw": "{{BASE_URL}}/api/v1/jobs/{{JOB_ID}}",
 							"host": [
