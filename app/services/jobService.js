@@ -1,9 +1,11 @@
 const Job = require("../models/jobModel");
-const User = require("../models/userModel");
 const { succMessage, errMessage } = require("../utilities/helper");
 require("../models/associations");
 const jobValidator = require("../validators/jobValidator");
 const { isUserPresent } = require("../validators/userValidator");
+const Sequelize = require("sequelize");
+const Op = Sequelize.Op;
+const CandidateJob = require("../models/candidateJobModel")
 
 class JobService {
 
@@ -32,22 +34,21 @@ class JobService {
     async getJobs(inputs) {
 
         let count = 0;
-        let allJobs = await Job.findAll({
-            order: [
-                ["updatedAt", "DESC"]
-            ],
-            limit: 2,
-            offset: inputs.page && inputs.page > 0 ? (inputs.page - 1) * 2 : 0
-        });
-        count = await Job.count({});
-        allJobs = allJobs.map(job => {
-            return job.dataValues;
-        })
+        let jobs;
         if (inputs.role == 0) {
-            return {jobs : allJobs , count};
-        }
-
-        if (inputs.role == 1) {
+            let allJobs = await Job.findAll({
+                order: [
+                    ["updatedAt", "DESC"]
+                ],
+                limit: 20,
+                offset: inputs.page && inputs.page > 0 ? (inputs.page - 1) * 20 : 0
+            });
+            count = await Job.count({});
+            allJobs = allJobs.map(job => {
+                return job.dataValues;
+            })
+            jobs = allJobs;
+        } else if (inputs.role == 1) {
             let postedJobs = await Job.findAll({
                 where: {
                     postedById: inputs.id
@@ -59,56 +60,80 @@ class JobService {
                 offset: inputs.page && inputs.page > 0 ? (inputs.page - 1) * 20 : 0
             });
 
-            // count = await Job.count({});
+            count = await Job.count({
+                where: {
+                    postedById: inputs.id
+                },
+            });
             postedJobs = postedJobs.map(job => {
                 return job.dataValues;
             })
-            return postedJobs;
-        }
+            jobs = postedJobs;
+        } else {
 
-        let appliedJobs = await Job.findAll({
-            include: [{
-                model: User,
+            let appliedJobIds = await CandidateJob.findAll({
+                attributes: ['JobId'],
                 where: {
-                    id: inputs.id
+                    UserId: inputs.id
+                }
+            });
+            appliedJobIds = appliedJobIds.map(jobId => {
+                return jobId.dataValues.JobId;
+            })
+
+            let availableJobs = await Job.findAll({
+                where: {
+                    id: {
+                        [Op.notIn]: appliedJobIds
+                    }
                 },
                 order: [
                     ["updatedAt", "DESC"]
-                ]
-            }],
-            limit : 20,
-            offset : inputs.page && inputs.page > 0 ? (inputs.page - 1) * 20 : 0
-        });
+                ],
+                limit: 20,
+                offset: inputs.page && inputs.page > 0 ? (inputs.page - 1) * 20 : 0
+            });
+            count = await Job.count({
+                where: {
+                    id: {
+                        [Op.notIn]: appliedJobIds
+                    }
+                }
+            })
+            availableJobs = availableJobs.map(job => {
+                return job.dataValues;
+            })
+            jobs = availableJobs;
+        }
 
-        appliedJobs = appliedJobs.map(job => {
-            return job.dataValues;
-        })
-
-        let availableJobs = allJobs.filter(job => {
-            for (let i = 0; i < appliedJobs.length; i++) {
-                if (appliedJobs[i].id === job.id)
-                    return false;
-            }
-            return true;
-        });
-
-        return availableJobs;
+        return { jobs, count };
     }
 
     async getPostedJobs(inputs) {
         inputs.user_id = inputs.recruiter_id;
         let user = await isUserPresent(inputs);
         if (!user) return errMessage(false, 400, "Recruiter does not exist.");
-        let jobs = await Job.findAll({
+        let postedJobs = await Job.findAll({
             where: {
                 postedById: user.id
             },
             order: [
                 ["updatedAt", "DESC"]
-            ]
+            ],
+            limit: 20,
+            offset: inputs.page && inputs.page > 0 ? (inputs.page - 1) * 20 : 0
         });
 
-        return jobs;
+        let count = await Job.count({
+            where: {
+                postedById: user.id
+            }
+        });
+        postedJobs = postedJobs.map(job => {
+            return job.dataValues;
+        })
+
+        return {jobs : postedJobs, count};
     }
 
     async deleteJob(inputs) {

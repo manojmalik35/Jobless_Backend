@@ -1,5 +1,5 @@
 const JobService = require("../services/jobService");
-const { succMessage, errMessage } = require("../utilities/helper");
+const { succMessage } = require("../utilities/helper");
 
 const jobService = new JobService();
 
@@ -52,7 +52,6 @@ module.exports.getJobs = async function (req, res) {
             company: job.company
         }
     });
-    // res.status(200).json(succMessage(true, 200, jobs, "Jobs successfully fetched."));
     res.status(200).json({
         status : true,
         code : 200,
@@ -70,19 +69,31 @@ module.exports.getJobs = async function (req, res) {
 module.exports.getPostedJobs = async function (req, res) {
     
     let inputs = req.params;
-    let jobs = await jobService.getPostedJobs(inputs);
+    inputs.page = req.query.page;
+    let {jobs, count} = await jobService.getPostedJobs(inputs);
     if(!jobs) return res.status(200).succMessage(true, 200, null, "No jobs posted.");
     jobs = jobs.map(job => {
         return {
-            uuid: job.dataValues.uuid,
-            title: job.dataValues.title,
-            description: job.dataValues.description,
-            package: job.dataValues.package,
-            company: job.dataValues.company
+            uuid: job.uuid,
+            title: job.title,
+            description: job.description,
+            package: job.package,
+            company: job.company
         }
     });    
-
-    return res.status(200).json(succMessage(true, 200, jobs, "Jobs successfully fetched."));
+    res.status(200).json({
+        status : true,
+        code : 200,
+        data : jobs,
+        message : "Jobs successfully fetched.",
+        metadata : {
+            resultset : {
+                limit : 20,
+                count : count
+            }
+        }
+    });
+    
 }
 
 module.exports.deleteJob = async function (req, res) {

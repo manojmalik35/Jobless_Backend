@@ -22,10 +22,16 @@ class UserService {
             where: { role: inputs.role },
             order : [
                 ["updatedAt", "DESC"]
-            ]
+            ],
+            limit: 20,
+            offset: inputs.page && inputs.page > 0 ? (inputs.page - 1) * 20 : 0
         });
 
-        return { status: true, data: users };
+        let count = await User.count({
+            where: { role: inputs.role },
+        });
+
+        return { status: true, data: users, count };
     }
 
     async getUser(inputs) {

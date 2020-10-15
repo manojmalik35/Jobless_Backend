@@ -1,5 +1,4 @@
 const UserService = require("../services/userService");
-const { succMessage } = require("../utilities/helper");
 
 const userService = new UserService();
 module.exports.getAllUsers = async function (req, res) {
@@ -8,6 +7,7 @@ module.exports.getAllUsers = async function (req, res) {
     let obj = await userService.getAllUsers(inputs);
     if (!obj.status) return res.status(obj.code).json(obj);
     let users = obj.data;
+    let count = obj.count;
 
     users = users.map(user => {
         return {
@@ -18,7 +18,18 @@ module.exports.getAllUsers = async function (req, res) {
             phone: user.phone
         }
     });
-    res.status(200).json(succMessage(true, 200, users, "Users fetched successfully."))
+    res.status(200).json({
+        status : true,
+        code : 200,
+        data : users,
+        message : "Users successfully fetched.",
+        metadata : {
+            resultset : {
+                limit : 20,
+                count : count
+            }
+        }
+    });
 }
 
 module.exports.deleteUser = async function (req, res) {
