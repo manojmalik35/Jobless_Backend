@@ -40,9 +40,11 @@ module.exports.viewAppliedJobs = async function (req, res) {
     else
         inputs.candidate_id = user.uuid;
 
+    inputs.page = req.query.page;
     let obj = await applicationService.getAppliedJobs(inputs);
     if(!obj.status) return res.status(obj.code).json(obj);
     let appliedJobs = obj.data;
+    let count = obj.count;
     appliedJobs = appliedJobs.map(job=>{
         return {
             uuid : job.uuid,
@@ -52,6 +54,18 @@ module.exports.viewAppliedJobs = async function (req, res) {
             company : job.company
         }
     })
-    res.status(200).json(succMessage(true, 200, appliedJobs, "Applied jobs fetched successfully."))
+
+    res.status(200).json({
+        status : true,
+        code : 200,
+        data : appliedJobs,
+        message : "Applied jobs successfully fetched.",
+        metadata : {
+            resultset : {
+                limit : 20,
+                count : count
+            }
+        }
+    });
 }
 
