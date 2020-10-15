@@ -11,9 +11,9 @@ class authService {
 
     async login(inputs) {
         let isValid = await validateLogin(inputs);
-        if(!isValid.status) return isValid;
+        if (!isValid.status) return isValid;
         const user = isValid.data;
-        if(user.role == 0)
+        if (user.role == 0)
             return errMessage(false, 400, "You cannot login from here.");
         let hash = {
             iv: user.hash_iv,
@@ -21,16 +21,16 @@ class authService {
         }
         const dbPass = decrypt(hash);
         if (dbPass == inputs.password)
-            return {status : true, data : user};
+            return { status: true, data: user };
 
         return errMessage(false, 400, "Wrong password");
     }
 
-    async adminLogin(inputs){
+    async adminLogin(inputs) {
         let isValid = await validateLogin(inputs);
-        if(!isValid.status) return isValid;
+        if (!isValid.status) return isValid;
         const user = isValid.data;
-        if(user.role != 0)
+        if (user.role != 0)
             return errMessage(false, 400, "You cannot login from here.");
         let hash = {
             iv: user.hash_iv,
@@ -38,23 +38,23 @@ class authService {
         }
         const dbPass = decrypt(hash);
         if (dbPass == inputs.password)
-            return {status : true, data : user};
+            return { status: true, data: user };
 
         return errMessage(false, 400, "Wrong password");
     }
 
     async forgotPassword(inputs) {
         let isValid = await validateForgotPassword(inputs);
-        if(!isValid.status) return isValid;
+        if (!isValid.status) return isValid;
         const user = isValid.data;
         let email = user.email;
-        
+
         let prevToken = await ResetToken.findOne({
             where: { email }
         });
 
         let token;
-        
+
         var expireDate = new Date();
         expireDate.setTime(expireDate.getTime() + (60 * 60 * 1000));
         if (prevToken == null) {
@@ -68,7 +68,7 @@ class authService {
             });
         } else {
 
-            if (prevToken.count >= TCOUNT) 
+            if (prevToken.count >= TCOUNT)
                 return errMessage(false, 400, `You have already requested token ${TCOUNT} times. Limit exceeded`)
 
             let updatedAt = prevToken.updatedAt;
@@ -78,7 +78,7 @@ class authService {
                 return errMessage(false, 400, "1 min has not been passed since the previous request.");
             }
 
-            if (diff < 600000) 
+            if (diff < 600000)
                 token = prevToken.token;
             else
                 token = crypto.randomBytes(32).toString('base64');
@@ -92,13 +92,13 @@ class authService {
             })
         }
 
-        
+
         const message = {
             to: email,
             subject: "Reset Password",
             text: token,
-            html: `<b> To reset your password, click the button below </b> 
-            <a href="https://${process.env.DOMAIN}/api/v1/users/reset-password?token=${encodeURIComponent(token)}&email=${email}">Click here </a>`
+            html: `<b> To reset your password, click the following link</b>\n 
+            ${process.env.DEPLOYED_URL}/api/v1/users/reset-password?token=${encodeURIComponent(token)}&email=${email}"`
         };
 
         Email(message);
@@ -107,16 +107,16 @@ class authService {
 
     async resetPassword(inputs) {
         let isValid = await validateResetPassword(inputs);
-        if(!isValid.status) return isValid;
+        if (!isValid.status) return isValid;
 
-        
+
         await ResetToken.destroy({
             where: {
                 expiration: { [Op.lt]: Sequelize.fn('CURDATE') },
             }
         });
 
-        
+
         let record = await ResetToken.findOne({
             where: {
                 email: inputs.email,

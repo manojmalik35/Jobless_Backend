@@ -3,23 +3,34 @@ const { errMessage, succMessage } = require("../utilities/helper");
 const Job = require("../models/jobModel");
 
 async function validateNewJob(inputs) {
+    let errors = {};
     if (!inputs.title)
-        return errMessage(false, 422, "Title is required.");
-    if (!inputs.description)
-        return errMessage(false, 422, "Description is required.");
-    if (!inputs.company)
-        return errMessage(false, 422, "Company is required.");
+        errors.title = "Title is required.";
+    else if (inputs.title.length < 5)
+        errors.title = "Job title is too short.";
+    else if (inputs.title.length > 25)
+        errors.title = "Job title is too long.";
+    
 
-    if (!validator.isLength(inputs.title, { min: 5, max: 100 }))
-        return errMessage(false, 422, "Please enter valid job title.");
-    if (!validator.isLength(inputs.description, { min: 10, max: 1000 }))
-        return errMessage(false, 422, "Please enter a description of at least 10 characters.");
-    if (!validator.isLength(inputs.company, { min: 5, max: 1000 }))
-        return errMessage(false, 422, "Please enter a valid company name");
+    if (!inputs.description)
+        errors.description = "Description is required.";
+    else if (!validator.isLength(inputs.description, { min: 10, max: 1000 }))
+        errors.description = "Please enter a description of at least 10 characters.";
+
+    if (!inputs.company)
+        errors.company = "Company is required.";
+        else if (inputs.company.length < 5)
+        errors.title = "Company name is too short.";
+    else if (inputs.company.length > 25)
+        errors.title = "Company name is too long.";
+
     if (inputs.package) {
-        if (!validator.isNumeric(inputs.package))
-            return errMessage(false, 422, "Please enter a valid package.");
+        if (!validator.isAlphanumeric(validator.blacklist(inputs.package, ' ')))
+            errors.package = "Package is not valid. Enter either number or like 5 lpa.";
     }
+
+    if (Object.keys(errors).length > 0)
+        return errMessage(false, 422, errors);
 
     let job = await Job.findOne({
         where: {
@@ -37,11 +48,14 @@ async function validateNewJob(inputs) {
 }
 
 async function validateGetJob(inputs) {
+    let errors = {};
     if (!inputs.job_id)
-        return errMessage(false, 422, "Job id is required.");
+        errors.job_id = "Job id is required.";
+    else if (!validator.isUUID(inputs.job_id))
+        errors.job_id = "Job id is not valid.";
 
-    if (!validator.isUUID(inputs.job_id))
-        return errMessage(false, 422, "Job id is not valid.");
+    if (Object.keys(errors).length > 0)
+        return errMessage(false, 422, errors);
 
     let job = await Job.findOne({
         where: { uuid: inputs.job_id }
@@ -54,11 +68,14 @@ async function validateGetJob(inputs) {
 }
 
 async function validateDeleteJob(inputs) {
+    let errors = {};
     if (!inputs.job_id)
-        return errMessage(false, 422, "Job id is required.");
+        errors.job_id = "Job id is required.";
+    else if (!validator.isUUID(inputs.job_id))
+        errors.job_id = "Job id is not valid.";
 
-    if (!validator.isUUID(inputs.job_id))
-        return errMessage(false, 422, "Job id is not valid.");
+    if (Object.keys(errors).length > 0)
+        return errMessage(false, 422, errors);
 
     let job = await Job.findOne({
         where: { uuid: inputs.job_id }
@@ -79,7 +96,7 @@ async function isJobPresent(inputs) {
         let job = await Job.findOne({
             where: { uuid: inputs.job_id }
         });
-        if(job)
+        if (job)
             return succMessage(true, 200, job, "Job present.");
 
         return errMessage(false, 400, "Job not present.");

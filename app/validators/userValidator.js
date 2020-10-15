@@ -6,24 +6,24 @@ async function validateSignup(inputs) {
     let errors = {};
     if (!inputs.email)
         errors.email = "Email is required."
+    else if (!validator.isEmail(inputs.email))
+        errors.email = "Email is not valid.";
+
     if (!inputs.password)
         errors.password = "Password is required.";
+    else if (!validator.isLength(inputs.password, { min: 6, max: 100 }))
+        errors.password = "Password must be at least 6 characters.";
+
     if (!inputs.name)
         errors.name = "Name is required.";
+    else if (!validator.isAlpha(validator.blacklist(inputs.name, ' ')))
+        errors.name = "Name cannot contain any numbers or special characters.";
+
     if (!inputs.role)
         errors.role = "Role is required. Please enter 1 or 2.(1 for recruiter and 2 for candidate)";
-
-    if (Object.keys(errors).length > 0)
-        return errMessage(false, 422, errors);
-
-    if (!validator.isEmail(inputs.email))
-        errors.email = "Email is not valid.";
-    if (!validator.isLength(inputs.password, { min: 6, max: 100 }))
-        errors.password = "Password must be at least 6 characters.";
-    if (!validator.isAlpha(inputs.name))
-        errors.name = "Name cannot contain any numbers or special characters.";
-    if (!validator.isIn(inputs.role, ["1", "2"]))
+    else if (!validator.isIn(inputs.role, ["1", "2"]))
         errors.role = "Role is not valid. Please enter 1 or 2.(1 for recruiter and 2 for candidate)";
+
     if (inputs.phone) {
         if (!validator.isMobilePhone(inputs.phone))
             errors.phone = "Phone no. is not valid.";
@@ -50,15 +50,12 @@ async function validateLogin(inputs) {
     let errors = {};
     if (!inputs.email)
         errors.email = "Email is required.";
+    else if (!validator.isEmail(inputs.email))
+        errors.email = "Email is not valid.";
+
     if (!inputs.password)
         errors.password = "Password is required.";
-
-    if (Object.keys(errors).length > 0)
-        return errMessage(false, 422, errors);
-
-    if (!validator.isEmail(inputs.email))
-        errors.email = "Email is not valid.";
-    if (!validator.isLength(inputs.password, { min: 6, max: 100 }))
+    else if (!validator.isLength(inputs.password, { min: 6, max: 100 }))
         errors.password = "Password must be at least 6 characters.";
 
     if (Object.keys(errors).length > 0)
@@ -80,11 +77,7 @@ async function validateForgotPassword(inputs) {
     let errors = {};
     if (!inputs.email)
         errors.email = "Email is required.";
-
-    if (Object.keys(errors).length > 0)
-        return errMessage(false, 422, errors);
-
-    if (!validator.isEmail(inputs.email))
+    else if (!validator.isEmail(inputs.email))
         errors.email = "Email is not valid.";
 
     if (Object.keys(errors).length > 0)
@@ -108,24 +101,22 @@ async function validateResetPassword(inputs) {
     let errors = {};
     if (!inputs.email)
         errors.email = "Email is required.";
+    else if (!validator.isEmail(inputs.email))
+        errors.email = "Email is not valid.";
+
     if (!inputs.password)
         errors.password = "Password is required.";
+    else if (!validator.isLength(inputs.password, { min: 6, max: 100 }))
+        errors.password = "Password must be at least 6 characters.";
+
     if (!inputs.confirmPassword)
         errors.confirmPassword = "confirmPassword is required.";
+    else if (!validator.equals(inputs.confirmPassword, inputs.password))
+        errors.confirmPassword = "Password does not match with confirmPassword.";
+
     if (!inputs.token)
         errors.token = "Token is required.";
-
-
-    if (Object.keys(errors).length > 0)
-        return errMessage(false, 422, errors);
-
-    if (!validator.isEmail(inputs.email))
-        errors.email = "Email is not valid.";
-    if (!validator.isLength(inputs.password, { min: 6, max: 100 }))
-        errors.password = "Password must be at least 6 characters.";
-    if (!validator.equals(inputs.confirmPassword, inputs.password))
-        errors.confirmPassword = "Password does not match with confirmPassword.";
-    if (!validator.isBase64(inputs.token))
+    else if (!validator.isBase64(inputs.token))
         errors.token = "Token is not valid.";
 
     if (Object.keys(errors).length > 0)
@@ -146,12 +137,9 @@ async function validateGetAllUsers(inputs) {
     let errors = {};
     if (!inputs.role)
         errors.role = "Role is required. Please enter 1 or 2.(1 for recruiter and 2 for candidate)";
-
-    if (Object.keys(errors).length > 0)
-        return errMessage(false, 422, errors);
-
-    if (!validator.isIn(inputs.role + "", ["1", "2"]))
+    else if (!validator.isIn(inputs.role + "", ["1", "2"]))
         errors.role = "Role is not valid. Please enter 1 or 2.";
+
     if (Object.keys(errors).length > 0)
         return errMessage(false, 422, errors);
 
@@ -164,11 +152,9 @@ async function validateGetUser(inputs) {
     let errors = {};
     if (!inputs.uuid)
         errors.uuid = "User id is required.";
-    if (Object.keys(errors).length > 0)
-        return errMessage(false, 422, errors);
-
-    if (!validator.isUUID(inputs.uuid))
+    else if (!validator.isUUID(inputs.uuid))
         errors.uuid = "User id is not valid.";
+
     if (Object.keys(errors).length > 0)
         return errMessage(false, 422, errors);
 
@@ -179,13 +165,11 @@ async function validateGetUser(inputs) {
 
 async function validateDeleteUser(inputs) {
     let errors = {};
-    if (!inputs.uuid)
-        errors.uuid = "User id is required.";
-    if (Object.keys(errors).length > 0)
-        return errMessage(false, 422, errors);
+    if (!inputs.user_id)
+        errors.user_id = "User id is required.";
+    else if (!validator.isUUID(inputs.user_id))
+        errors.user_id = "User id is not valid.";
 
-    if (!validator.isUUID(inputs.uuid))
-        errors.uuid = "User id is not valid.";
     if (Object.keys(errors).length > 0)
         return errMessage(false, 422, errors);
 
@@ -203,7 +187,7 @@ async function validateDeleteUser(inputs) {
 
 async function validateToken(token) {
     if (!validator.isJWT(token))
-        return errMessage(false, 422, {token : "Your token is not valid."});
+        return errMessage(false, 422, { token: "Your token is not valid." });
 
     return {
         status: true

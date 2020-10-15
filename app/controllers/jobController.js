@@ -40,7 +40,8 @@ module.exports.getJobs = async function (req, res) {
 
     let user = req.user;
     let inputs = { role: user.role, id: user.id };
-    let jobs = await jobService.getJobs(inputs);
+    if(req.query.page) inputs.page = req.query.page;
+    let {jobs, count} = await jobService.getJobs(inputs);
     if(!jobs) return res.status(200).json(succMessage(true, 200, null, "No jobs"))
     jobs = jobs.map(job => {
         return {
@@ -51,7 +52,19 @@ module.exports.getJobs = async function (req, res) {
             company: job.company
         }
     });
-    res.status(200).json(succMessage(true, 200, jobs, "Jobs successfully fetched."));
+    // res.status(200).json(succMessage(true, 200, jobs, "Jobs successfully fetched."));
+    res.status(200).json({
+        status : true,
+        code : 200,
+        data : jobs,
+        message : "Jobs successfully fetched.",
+        metadata : {
+            resultset : {
+                limit : 20,
+                count : count
+            }
+        }
+    });
 }
 
 module.exports.getPostedJobs = async function (req, res) {

@@ -14,7 +14,7 @@ const Job = db.define('Job', {
         type: DataTypes.STRING
     },
     package: {
-        type: DataTypes.INTEGER
+        type: DataTypes.STRING
     },
     company : {
         type : DataTypes.STRING

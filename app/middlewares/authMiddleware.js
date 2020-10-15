@@ -29,6 +29,6 @@ module.exports.isLoggedIn = (role) => {
                 res.status(401).json(errMessage(false, 401, "Your token is tampered."));
 
         } else
-            res.status(404).json(errMessage(false, 404, "You are not authorized."));
+            res.status(401).json(errMessage(false, 401, "You are not authorized."));
     }
 }
