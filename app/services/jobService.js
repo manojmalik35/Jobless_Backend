@@ -40,8 +40,8 @@ class JobService {
                 order: [
                     ["updatedAt", "DESC"]
                 ],
-                limit: process.env.PAGINATION_LIMIT,
-                offset: inputs.page && inputs.page > 0 ? (inputs.page - 1) * process.env.PAGINATION_LIMIT : 0
+                limit: Number(process.env.PAGINATION_LIMIT),
+                offset: inputs.page && inputs.page > 0 ? (inputs.page - 1) * Number(process.env.PAGINATION_LIMIT) : 0
             });
             count = await Job.count({});
             allJobs = allJobs.map(job => {
@@ -56,8 +56,8 @@ class JobService {
                 order: [
                     ["updatedAt", "DESC"]
                 ],
-                limit: process.env.PAGINATION_LIMIT,
-                offset: inputs.page && inputs.page > 0 ? (inputs.page - 1) * process.env.PAGINATION_LIMIT : 0
+                limit: Number(process.env.PAGINATION_LIMIT),
+                offset: inputs.page && inputs.page > 0 ? (inputs.page - 1) * Number(process.env.PAGINATION_LIMIT) : 0
             });
 
             count = await Job.count({
@@ -81,6 +81,7 @@ class JobService {
                 return jobId.dataValues.JobId;
             })
 
+            console.log(appliedJobIds);
             let availableJobs = await Job.findAll({
                 where: {
                     id: {
@@ -90,8 +91,8 @@ class JobService {
                 order: [
                     ["updatedAt", "DESC"]
                 ],
-                limit: process.env.PAGINATION_LIMIT,
-                offset: inputs.page && inputs.page > 0 ? (inputs.page - 1) * process.env.PAGINATION_LIMIT : 0
+                limit: Number(process.env.PAGINATION_LIMIT),
+                offset: inputs.page && inputs.page > 0 ? (inputs.page - 1) * Number(process.env.PAGINATION_LIMIT) : 0
             });
             count = await Job.count({
                 where: {
@@ -120,8 +121,8 @@ class JobService {
             order: [
                 ["updatedAt", "DESC"]
             ],
-            limit: process.env.PAGINATION_LIMIT,
-            offset: inputs.page && inputs.page > 0 ? (inputs.page - 1) * process.env.PAGINATION_LIMIT : 0
+            limit: Number(process.env.PAGINATION_LIMIT),
+            offset: inputs.page && inputs.page > 0 ? (inputs.page - 1) * Number(process.env.PAGINATION_LIMIT) : 0
         });
 
         let count = await Job.count({
@@ -133,7 +134,7 @@ class JobService {
             return job.dataValues;
         })
 
-        return {jobs : postedJobs, count};
+        return { jobs: postedJobs, count };
     }
 
     async deleteJob(inputs) {

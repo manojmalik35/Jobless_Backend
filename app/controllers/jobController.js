@@ -59,7 +59,7 @@ module.exports.getJobs = async function (req, res) {
         message : "Jobs successfully fetched.",
         metadata : {
             resultset : {
-                limit : process.env.PAGINATION_LIMIT,
+                limit : Number(process.env.PAGINATION_LIMIT),
                 count : count
             }
         }
@@ -88,7 +88,7 @@ module.exports.getPostedJobs = async function (req, res) {
         message : "Jobs successfully fetched.",
         metadata : {
             resultset : {
-                limit : process.env.PAGINATION_LIMIT,
+                limit : Number(process.env.PAGINATION_LIMIT),
                 count : count
             }
         }

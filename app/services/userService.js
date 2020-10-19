@@ -23,8 +23,8 @@ class UserService {
             order : [
                 ["updatedAt", "DESC"]
             ],
-            limit: process.env.PAGINATION_LIMIT,
-            offset: inputs.page && inputs.page > 0 ? (inputs.page - 1) * process.env.PAGINATION_LIMIT : 0
+            limit: Number(process.env.PAGINATION_LIMIT),
+            offset: inputs.page && inputs.page > 0 ? (inputs.page - 1) * Number(process.env.PAGINATION_LIMIT) : 0
         });
 
         let count = await User.count({

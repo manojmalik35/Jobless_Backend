@@ -6,7 +6,7 @@ async function validateNewJob(inputs) {
     let errors = {};
     if (!inputs.title)
         errors.title = "Title is required.";
-    else if (inputs.title.length < 5)
+    else if (inputs.title.length < 3)
         errors.title = "Job title is too short.";
     else if (inputs.title.length > 25)
         errors.title = "Job title is too long.";
@@ -19,7 +19,7 @@ async function validateNewJob(inputs) {
 
     if (!inputs.company)
         errors.company = "Company is required.";
-        else if (inputs.company.length < 5)
+        else if (inputs.company.length < 3)
         errors.title = "Company name is too short.";
     else if (inputs.company.length > 25)
         errors.title = "Company name is too long.";

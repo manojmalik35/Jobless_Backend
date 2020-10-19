@@ -62,7 +62,7 @@ module.exports.viewAppliedJobs = async function (req, res) {
         message : "Applied jobs successfully fetched.",
         metadata : {
             resultset : {
-                limit : process.env.PAGINATION_LIMIT,
+                limit : Number(process.env.PAGINATION_LIMIT),
                 count : count
             }
         }
