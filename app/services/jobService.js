@@ -80,8 +80,7 @@ class JobService {
             appliedJobIds = appliedJobIds.map(jobId => {
                 return jobId.dataValues.JobId;
             })
-
-            console.log(appliedJobIds);
+            
             let availableJobs = await Job.findAll({
                 where: {
                     id: {
