@@ -25,7 +25,7 @@ module.exports.getAllUsers = async function (req, res) {
         message : "Users successfully fetched.",
         metadata : {
             resultset : {
-                limit : 20,
+                limit : process.env.PAGINATION_LIMIT,
                 count : count
             }
         }
