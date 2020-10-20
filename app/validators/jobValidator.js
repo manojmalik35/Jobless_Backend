@@ -4,33 +4,46 @@ const Job = require("../models/jobModel");
 
 async function validateNewJob(inputs) {
     let errors = {};
+    let status = 400;
     if (!inputs.title)
         errors.title = "Title is required.";
-    else if (inputs.title.length < 3)
+    else if (inputs.title.length < 3){
         errors.title = "Job title is too short.";
-    else if (inputs.title.length > 25)
+        status = 422;
+    }
+    else if (inputs.title.length > 30){
         errors.title = "Job title is too long.";
+        status = 422;
+    }
     
 
     if (!inputs.description)
         errors.description = "Description is required.";
-    else if (!validator.isLength(inputs.description, { min: 10, max: 1000 }))
+    else if (!validator.isLength(inputs.description, { min: 10, max: 700 })){
         errors.description = "Please enter a description of at least 10 characters.";
+        status = 422;
+    }
 
     if (!inputs.company)
         errors.company = "Company is required.";
-        else if (inputs.company.length < 3)
-        errors.title = "Company name is too short.";
-    else if (inputs.company.length > 25)
+        else if (inputs.company.length < 3){
+            errors.title = "Company name is too short.";
+            status = 422;
+        }
+    else if (inputs.company.length > 25){
         errors.title = "Company name is too long.";
+        status = 422;
+    }
 
     if (inputs.package) {
-        if (!validator.isAlphanumeric(validator.blacklist(inputs.package, ' ')))
+        if (!validator.isAlphanumeric(validator.blacklist(inputs.package, ' '))){
             errors.package = "Package is not valid. Enter either number or like 5 lpa.";
+            status = 422;
+        }
     }
 
     if (Object.keys(errors).length > 0)
-        return errMessage(false, 422, errors);
+        return errMessage(false, status, errors);
 
     let job = await Job.findOne({
         where: {
@@ -40,7 +53,7 @@ async function validateNewJob(inputs) {
         }
     });
     if (job)
-        return errMessage(false, 400, "Job already exists.");
+        return errMessage(false, 422, "Job already exists.");
 
     return {
         status: true
@@ -49,13 +62,16 @@ async function validateNewJob(inputs) {
 
 async function validateGetJob(inputs) {
     let errors = {};
+    let status = 400;
     if (!inputs.job_id)
         errors.job_id = "Job id is required.";
-    else if (!validator.isUUID(inputs.job_id))
+    else if (!validator.isUUID(inputs.job_id)){
         errors.job_id = "Job id is not valid.";
+        status = 422;
+    }
 
     if (Object.keys(errors).length > 0)
-        return errMessage(false, 422, errors);
+        return errMessage(false, status, errors);
 
     let job = await Job.findOne({
         where: { uuid: inputs.job_id }
@@ -69,13 +85,16 @@ async function validateGetJob(inputs) {
 
 async function validateDeleteJob(inputs) {
     let errors = {};
+    let status = 400;
     if (!inputs.job_id)
         errors.job_id = "Job id is required.";
-    else if (!validator.isUUID(inputs.job_id))
+    else if (!validator.isUUID(inputs.job_id)){
         errors.job_id = "Job id is not valid.";
+        status = 422;
+    }
 
     if (Object.keys(errors).length > 0)
-        return errMessage(false, 422, errors);
+        return errMessage(false, status, errors);
 
     let job = await Job.findOne({
         where: { uuid: inputs.job_id }
@@ -102,7 +121,7 @@ async function isJobPresent(inputs) {
         return errMessage(false, 400, "Job not present.");
     }
 
-    return errMessage(false, 422, "Job id is required.");
+    return errMessage(false, 400, "Job id is required.");
 }
 
 module.exports = { validateNewJob, validateGetJob, validateDeleteJob, isJobPresent };

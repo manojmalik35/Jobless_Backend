@@ -41,6 +41,13 @@ app.use((req, res, next) => {
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/jobs", jobRouter);
 app.use("/api/v1/application", applicationRouter);
+app.use("*", function(req, res){
+    res.status(404).json({
+        status : false,
+        code : 404,
+        message : "Page not found"
+    })
+})
 var port = process.env.PORT || 4000;
 app.listen(port, () => {
     console.log("Server is listening at port " + port);

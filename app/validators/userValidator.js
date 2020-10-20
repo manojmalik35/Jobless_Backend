@@ -4,42 +4,67 @@ const User = require("../models/userModel");
 
 async function validateSignup(inputs) {
     let errors = {};
+    let status = 400;
     if (!inputs.email)
-        errors.email = "Email is required."
-    else if (!validator.isEmail(inputs.email))
+        errors.email = "Email is required.";
+    else if (!validator.isEmail(inputs.email)) {
         errors.email = "Email is not valid.";
+        status = 422;
+    }
 
     if (!inputs.password)
         errors.password = "Password is required.";
-    else if (!validator.isLength(inputs.password, { min: 6, max: 100 }))
+    else if (!validator.isLength(inputs.password, { min: 6, max: 100 })) {
         errors.password = "Password must be at least 6 characters.";
+        status = 422;
+    }
+
+    if (!inputs.confirmPassword)
+        errors.confirmPassword = "confirmPassword is required.";
+    else if (!validator.equals(inputs.confirmPassword, inputs.password)) {
+        errors.confirmPassword = "Password does not match with confirmPassword.";
+        status = 422;
+    }
 
     if (!inputs.name)
         errors.name = "Name is required.";
-    else if (!validator.isAlpha(validator.blacklist(inputs.name, ' ')))
+    else if (!validator.isAlpha(validator.blacklist(inputs.name, ' '))) {
         errors.name = "Name cannot contain any numbers or special characters.";
+        status = 422;
+    }
 
     if (!inputs.role)
         errors.role = "Role is required. Please enter 1 or 2.(1 for recruiter and 2 for candidate)";
-    else if (!validator.isIn(inputs.role, ["1", "2"]))
-        errors.role = "Role is not valid. Please enter 1 or 2.(1 for recruiter and 2 for candidate)";
+    else if (typeof inputs.role == String) {
+        if (!validator.isIn(inputs.role, ["1", "2"]))
+            errors.role = "Role is not valid. Please enter 1 or 2.(1 for recruiter and 2 for candidate)";
+        status = 422;
+    } else if (typeof inputs.role == Number) {
+        if (!validator.isIn(inputs.role, [1, 2]))
+            errors.role = "Role is not valid. Please enter 1 or 2.(1 for recruiter and 2 for candidate)";
+        status = 422;
+    }
 
     if (inputs.phone) {
-        if (!validator.isMobilePhone(inputs.phone))
+        if (!validator.isMobilePhone(inputs.phone)) {
             errors.phone = "Phone no. is not valid.";
+            status = 422;
+        }
 
-        if (!validator.isLength(inputs.phone, { min: 10, max: 10 }))
+        if (!validator.isLength(inputs.phone, { min: 10, max: 10 })) {
             errors.phone = "Phone no. must contain 10 digits.";
+            status = 422;
+        }
     }
 
     if (Object.keys(errors).length > 0)
-        return errMessage(false, 422, errors);
+        return errMessage(false, status, errors);
 
     const user = await User.findOne({
         where: { email: inputs.email }
     });
     if (user)
-        return errMessage(false, 400, "User already exists.");
+        return errMessage(false, 422, "Email already exists.");
 
     return {
         status: true
@@ -48,24 +73,29 @@ async function validateSignup(inputs) {
 
 async function validateLogin(inputs) {
     let errors = {};
+    let status = 400;
     if (!inputs.email)
         errors.email = "Email is required.";
-    else if (!validator.isEmail(inputs.email))
+    else if (!validator.isEmail(inputs.email)) {
         errors.email = "Email is not valid.";
+        status = 422;
+    }
 
     if (!inputs.password)
         errors.password = "Password is required.";
-    else if (!validator.isLength(inputs.password, { min: 6, max: 100 }))
+    else if (!validator.isLength(inputs.password, { min: 6, max: 100 })) {
         errors.password = "Password must be at least 6 characters.";
+        status = 422;
+    }
 
     if (Object.keys(errors).length > 0)
-        return errMessage(false, 422, errors);
+        return errMessage(false, status, errors);
     const user = await User.findOne({
         where: { email: inputs.email }
     });
 
     if (user == null)
-        return errMessage(false, 400, "User does not exist.");
+        return errMessage(false, 401, "Email does not exist.");
 
     return {
         status: true,
@@ -75,20 +105,23 @@ async function validateLogin(inputs) {
 
 async function validateForgotPassword(inputs) {
     let errors = {};
+    let status = 400;
     if (!inputs.email)
         errors.email = "Email is required.";
-    else if (!validator.isEmail(inputs.email))
+    else if (!validator.isEmail(inputs.email)) {
         errors.email = "Email is not valid.";
+        status = 422;
+    }
 
     if (Object.keys(errors).length > 0)
-        return errMessage(false, 422, errors);
+        return errMessage(false, status, errors);
 
     const user = await User.findOne({
         where: { email: inputs.email }
     });
 
     if (user == null) {
-        return errMessage(false, 400, "User does not exist.");
+        return errMessage(false, 401, "Email does not exist.");
     }
 
     return {
@@ -99,34 +132,43 @@ async function validateForgotPassword(inputs) {
 
 async function validateResetPassword(inputs) {
     let errors = {};
+    let status = 400;
     if (!inputs.email)
         errors.email = "Email is required.";
-    else if (!validator.isEmail(inputs.email))
+    else if (!validator.isEmail(inputs.email)) {
         errors.email = "Email is not valid.";
+        status = 422;
+    }
 
     if (!inputs.password)
         errors.password = "Password is required.";
-    else if (!validator.isLength(inputs.password, { min: 6, max: 100 }))
+    else if (!validator.isLength(inputs.password, { min: 6, max: 100 })) {
         errors.password = "Password must be at least 6 characters.";
+        status = 422;
+    }
 
     if (!inputs.confirmPassword)
         errors.confirmPassword = "confirmPassword is required.";
-    else if (!validator.equals(inputs.confirmPassword, inputs.password))
+    else if (!validator.equals(inputs.confirmPassword, inputs.password)) {
         errors.confirmPassword = "Password does not match with confirmPassword.";
+        status = 422;
+    }
 
     if (!inputs.token)
         errors.token = "Token is required.";
-    else if (!validator.isBase64(inputs.token))
+    else if (!validator.isBase64(inputs.token)) {
         errors.token = "Token is not valid.";
+        status = 422;
+    }
 
     if (Object.keys(errors).length > 0)
-        return errMessage(false, 422, errors);
+        return errMessage(false, status, errors);
     const user = await User.findOne({
         where: { email: inputs.email }
     });
 
     if (user == null) {
-        return errMessage(false, 400, "User does not exist.");
+        return errMessage(false, 401, "Email does not exist.");
     }
     return {
         status: true
@@ -135,13 +177,16 @@ async function validateResetPassword(inputs) {
 
 async function validateGetAllUsers(inputs) {
     let errors = {};
+    let status = 400;
     if (!inputs.role)
         errors.role = "Role is required. Please enter 1 or 2.(1 for recruiter and 2 for candidate)";
-    else if (!validator.isIn(inputs.role + "", ["1", "2"]))
+    else if (!validator.isIn(inputs.role + "", ["1", "2"])) {
         errors.role = "Role is not valid. Please enter 1 or 2.";
+        status = 422;
+    }
 
     if (Object.keys(errors).length > 0)
-        return errMessage(false, 422, errors);
+        return errMessage(false, status, errors);
 
     return {
         status: true
@@ -150,13 +195,16 @@ async function validateGetAllUsers(inputs) {
 
 async function validateGetUser(inputs) {
     let errors = {};
+    let status = 400;
     if (!inputs.uuid)
         errors.uuid = "User id is required.";
-    else if (!validator.isUUID(inputs.uuid))
+    else if (!validator.isUUID(inputs.uuid)) {
         errors.uuid = "User id is not valid.";
+        status = 422;
+    }
 
     if (Object.keys(errors).length > 0)
-        return errMessage(false, 422, errors);
+        return errMessage(false, status, errors);
 
     return {
         status: true
@@ -165,19 +213,22 @@ async function validateGetUser(inputs) {
 
 async function validateDeleteUser(inputs) {
     let errors = {};
+    let status = 400;
     if (!inputs.user_id)
         errors.user_id = "User id is required.";
-    else if (!validator.isUUID(inputs.user_id))
+    else if (!validator.isUUID(inputs.user_id)) {
         errors.user_id = "User id is not valid.";
+        status = 422;
+    }
 
     if (Object.keys(errors).length > 0)
-        return errMessage(false, 422, errors);
+        return errMessage(false, status, errors);
 
     let user = await User.findOne({
         where: { uuid: inputs.user_id }
     });
     if (!user)
-        return errMessage(false, 400, "User does not exist.");
+        return errMessage(false, 401, "Email does not exist.");
 
     return {
         status: true,
