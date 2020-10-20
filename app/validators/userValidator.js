@@ -20,7 +20,7 @@ async function validateSignup(inputs) {
     }
 
     if (!inputs.confirmPassword)
-        errors.confirmPassword = "confirmPassword is required.";
+        errors.confirmPassword = "Confirm Password is required.";
     else if (!validator.equals(inputs.confirmPassword, inputs.password)) {
         errors.confirmPassword = "Password does not match with confirmPassword.";
         status = 422;
