@@ -228,7 +228,7 @@ async function validateDeleteUser(inputs) {
         where: { uuid: inputs.user_id }
     });
     if (!user)
-        return errMessage(false, 401, "Email does not exist.");
+        return errMessage(false, 400, "Email does not exist.");
 
     return {
         status: true,
