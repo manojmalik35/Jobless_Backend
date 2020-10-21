@@ -59,7 +59,7 @@ class UserService {
             }
         });
 
-        return succMessage(true, 204, null, "User deleted.");
+        return succMessage(true, 200, null, "User deleted.");
     }
 }
 
