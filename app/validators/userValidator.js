@@ -56,7 +56,9 @@ async function validateSignup(inputs) {
             status = 422;
         }
     }
-
+    if(inputs.phone.length == 0){
+        delete inputs.phone;
+    }
     if (Object.keys(errors).length > 0)
         return errMessage(false, status, errors);
 

@@ -92,7 +92,7 @@ class authService {
             })
         }
 
-
+        
         const message = {
             to: email,
             subject: "Reset Password",
