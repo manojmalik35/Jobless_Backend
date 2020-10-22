@@ -1,6 +1,7 @@
 const validator = require("validator");
 const { errMessage } = require("../utilities/helper");
 const User = require("../models/userModel");
+const { decrypt } = require("../utilities/helper");
 
 async function validateSignup(inputs) {
     let errors = {};
@@ -56,7 +57,7 @@ async function validateSignup(inputs) {
             status = 422;
         }
     }
-    if(inputs.phone.length == 0){
+    if (inputs.phone.length == 0) {
         delete inputs.phone;
     }
     if (Object.keys(errors).length > 0)
@@ -172,6 +173,14 @@ async function validateResetPassword(inputs) {
     if (user == null) {
         return errMessage(false, 401, "Email does not exist.");
     }
+
+    let hash = {
+        iv: user.hash_iv,
+        content: user.password
+    }
+    const dbPass = decrypt(hash);
+    if (dbPass == inputs.password)
+        return errMessage(false, 400, "New Password cannot be same as old password.");
     return {
         status: true
     }
