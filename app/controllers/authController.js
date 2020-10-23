@@ -1,17 +1,15 @@
 const jwt = require("jsonwebtoken");
 const { KEY } = require("../configs/config");
 const { errMessage, succMessage } = require("../utilities/helper");
-const UserService = require("../services/userService");
 const AuthService = require("../services/authService");
 const recaptchaHelpers = require("../utilities/recaptcha");
 
-const userService = new UserService();
 const authService = new AuthService();
 
 module.exports.signup = async function (req, res) {
 
     let inputs = req.body;
-    let obj = await userService.create(inputs);
+    let obj = await authService.signup(inputs);
     if (!obj.status) return res.status(obj.code).json(obj);
 
     const user = obj.data;

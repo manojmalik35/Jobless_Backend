@@ -3,12 +3,31 @@ const User = require("../models/userModel");
 const ResetToken = require("../models/tokenModel");
 const crypto = require("crypto");
 const { TCOUNT } = require("../configs/config");
-const { validateLogin, validateForgotPassword, validateResetPassword } = require("../validators/userValidator");
+const { validateSignup, validateLogin, validateForgotPassword, validateResetPassword } = require("../validators/userValidator");
 const Sequelize = require("sequelize");
 const Op = Sequelize.Op;
 const fs = require("fs");
 
 class authService {
+
+    async signup(inputs) {
+
+        let isValid = await validateSignup(inputs);
+        if (!isValid.status) return isValid;
+        
+        let fakeEmailsFile = fs.readFileSync("./fakeEmail.txt");
+        let fakeEmailsArr = fakeEmailsFile.toString('utf-8').split("\n");
+        let domain = inputs.email.split("@")[1];
+        if(fakeEmailsArr.includes(domain)){
+            return errMessage(false, 422, "You cannot signup with a temporary email.");
+        }
+
+        const hash = encrypt(inputs.password);
+        inputs.hash_iv = hash.iv;
+        inputs.password = hash.content;
+        const user = await User.create(inputs);
+        return { status: true, data: user };
+    }
 
     async login(inputs) {
         let logPath = "./failed.txt";

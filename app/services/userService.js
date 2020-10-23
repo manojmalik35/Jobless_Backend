@@ -1,18 +1,8 @@
-const { encrypt, succMessage, errMessage } = require("../utilities/helper");
+const { succMessage, errMessage } = require("../utilities/helper");
 const User = require("../models/userModel");
 const userValidator = require("../validators/userValidator");
 
 class UserService {
-
-    async create(inputs) {
-        let isValid = await userValidator.validateSignup(inputs);
-        if (!isValid.status) return isValid;
-        const hash = encrypt(inputs.password);
-        inputs.hash_iv = hash.iv;
-        inputs.password = hash.content;
-        const user = await User.create(inputs);
-        return { status: true, data: user };
-    }
 
     async getAllUsers(inputs) {
         let isValid = await userValidator.validateGetAllUsers(inputs);
