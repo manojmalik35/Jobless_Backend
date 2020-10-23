@@ -40,7 +40,7 @@ class authService {
         if (dbPass == inputs.password)
             return { status: true, data: user };
 
-        return errMessage(false, 400, "Wrong password");
+        return errMessage(false, 401, "Wrong password");
     }
 
     async forgotPassword(inputs) {
