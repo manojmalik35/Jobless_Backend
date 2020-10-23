@@ -6,15 +6,26 @@ const { TCOUNT } = require("../configs/config");
 const { validateLogin, validateForgotPassword, validateResetPassword } = require("../validators/userValidator");
 const Sequelize = require("sequelize");
 const Op = Sequelize.Op;
+const fs = require("fs");
 
 class authService {
 
     async login(inputs) {
+        let logPath = "./failed.txt";
         let isValid = await validateLogin(inputs);
-        if (!isValid.status) return isValid;
+        if (!isValid.status) {
+            fs.appendFile(logPath, "\n"+JSON.stringify(inputs), function(err){
+                if(err) throw err;
+            });
+            return isValid;
+        };
         const user = isValid.data;
-        if (user.role == 0)
+        if (user.role == 0) {
+            fs.appendFile(logPath, "\n"+JSON.stringify(inputs), function (err) {
+                if (err) throw err;
+            });
             return errMessage(false, 400, "You cannot login from here.");
+        }
         let hash = {
             iv: user.hash_iv,
             content: user.password
@@ -23,6 +34,9 @@ class authService {
         if (dbPass == inputs.password)
             return { status: true, data: user };
 
+        fs.appendFile(logPath, "\n"+JSON.stringify(inputs), function (err) {
+            if (err) throw err;
+        });
         return errMessage(false, 400, "Wrong password");
     }
 
@@ -92,7 +106,7 @@ class authService {
             })
         }
 
-        
+
         const message = {
             to: email,
             subject: "Reset Password",
@@ -146,6 +160,14 @@ class authService {
             }
         });
 
+        const message = {
+            to: record.email,
+            subject: "Reset Password",
+            text: "Your password has been changed successfully.",
+            html: `<b> Your password has been changed successfully.</b>`
+        };
+
+        Email(message);
         return succMessage(true, 200, null, "Password has been reset. Please login again.");
     }
 }

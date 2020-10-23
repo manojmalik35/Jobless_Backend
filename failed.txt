@@ -1,0 +1,5 @@
+{"email":"barney@gmail.com","password":"123456789"}
+{"email":"bhavesh@gmail.com","password":"123456789"}
+{"email":"bhavesh@gmail.com","password":"123456789"}
+{"email":"admin@jobless.com","password":"password"}
+{"email":"saumya@gmail.com","password":"1234567"}
